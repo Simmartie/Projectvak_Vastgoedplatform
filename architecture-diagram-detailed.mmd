@@ -1,0 +1,104 @@
+erDiagram
+    USER ||--o{ PROPERTY : "sells/owns"
+    PROPERTY ||--o{ BID : "receives"
+    PROPERTY ||--o{ VISIT : "has"
+    USER ||--o{ BID : "places"
+    USER ||--o{ VISIT : "books"
+    PROPERTY ||--|| NEIGHBORHOOD : "located_in"
+    NEIGHBORHOOD ||--o{ SCHOOL : "contains"
+    NEIGHBORHOOD ||--o{ SPORTS_CLUB : "contains"
+    NEIGHBORHOOD ||--o{ TRANSPORT : "contains"
+    NEIGHBORHOOD ||--o{ EVENT : "contains"
+    
+    USER {
+        string id PK
+        string name
+        string email
+        enum role "makelaar|verkoper|koper"
+        string propertyId FK
+    }
+    
+    PROPERTY {
+        string id PK
+        string address
+        string city
+        string postalCode
+        number price
+        enum type "huis|appartement|villa"
+        number rooms
+        number bedrooms
+        number area
+        number plotSize
+        number buildYear
+        string energyLabel
+        enum status "te-koop|onder-bod|verkocht"
+        string description
+        array features
+        array images
+        string sellerId FK
+        number views
+        number interested
+        enum phase "intake|fotografie|online|bezichtigingen|onderhandeling|afgerond"
+    }
+    
+    BID {
+        string id PK
+        string propertyId FK
+        string buyerId FK
+        string buyerName
+        number amount
+        date date
+        enum status "pending|accepted|rejected"
+        string comments
+    }
+    
+    VISIT {
+        string id PK
+        string propertyId FK
+        string buyerId FK
+        string buyerName
+        date date
+        string feedback
+        number rating
+    }
+    
+    NEIGHBORHOOD {
+        string propertyId PK
+    }
+    
+    SCHOOL {
+        string id PK
+        string propertyId FK
+        string name
+        enum type "basisonderwijs|middelbaar|mbo|hbo"
+        number distance
+        number rating
+    }
+    
+    SPORTS_CLUB {
+        string id PK
+        string propertyId FK
+        string name
+        string type
+        number distance
+    }
+    
+    TRANSPORT {
+        string id PK
+        string propertyId FK
+        enum type "bus|tram|trein|metro"
+        string line
+        string stop
+        number distance
+    }
+    
+    EVENT {
+        string id PK
+        string propertyId FK
+        string name
+        string frequency
+        string description
+    }
+
+
+
