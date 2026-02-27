@@ -1,0 +1,121 @@
+graph TB
+    subgraph "🌐 Frontend Layer - Next.js + React"
+        UI[Next.js Frontend<br/>React 19.2.0 + TypeScript<br/>Tailwind CSS 4.1.9]
+        Pages[Pages & Components<br/>Server & Client Components]
+        Routing[App Router<br/>Client-side Navigation]
+        
+        UI --> Pages
+        Pages --> Routing
+        
+        subgraph "👥 User Interfaces"
+            KoperUI[🏠 Koper Dashboard<br/>/app/koper/<br/>- Property Search<br/>- Map View<br/>- Property Details]
+            VerkoperUI[📝 Verkoper Dashboard<br/>/app/verkoper/<br/>- Property Management<br/>- Status Tracking]
+            MakelaarUI[💼 Makelaar Dashboard<br/>/app/makelaar/<br/>- CRM Overview<br/>- Property Management<br/>- Bids & Visits]
+        end
+        
+        subgraph "🧩 UI Components"
+            ChatUI[💬 Chat Interface<br/>AI Assistant Component<br/>Streaming Responses]
+            MapUI[🗺️ Property Map<br/>Location Visualization<br/>Distance Calculation]
+            Header[📋 Header Component<br/>Navigation & Auth]
+            Cards[🎴 Card Components<br/>Radix UI Primitives]
+        end
+    end
+    
+    subgraph "⚙️ Backend / Logic Layer"
+        API[Next.js API Routes<br/>Serverless Functions<br/>Edge Runtime]
+        ChatAPI[API Route: /api/chat<br/>AI Chat Handler<br/>POST Requests]
+        Auth[Authentication Logic<br/>lib/auth.ts<br/>Role-based Access]
+        Props[Property Logic<br/>lib/properties.ts<br/>Data Helpers]
+        
+        API --> ChatAPI
+        API --> Auth
+        API --> Props
+    end
+    
+    subgraph "💾 Data Layer"
+        MockData[📦 Mock Data Storage<br/>TypeScript Files<br/>In-Memory]
+        Properties[🏘️ Property Data<br/>lib/properties.ts<br/>10 Mock Properties]
+        Users[👤 User Data<br/>lib/auth.ts<br/>Mock Users]
+        LocalStorage[💿 Browser LocalStorage<br/>Session Management<br/>User State]
+        
+        Properties --> MockData
+        Users --> MockData
+        Auth --> LocalStorage
+    end
+    
+    subgraph "🤖 AI Components"
+        AISDK[AI SDK<br/>ai: 5.0.93<br/>Streaming Support]
+        OpenAI[ai-sdk/openai<br/>2.0.68<br/>OpenAI Integration]
+        ChatLogic[Chat Response Generator<br/>Rule-based Logic<br/>Property Context]
+        
+        AISDK --> OpenAI
+        ChatAPI --> ChatLogic
+        ChatLogic --> AISDK
+    end
+    
+    subgraph "🚀 Deployment & Infrastructure"
+        Vercel[Vercel Platform<br/>Hosting & CDN<br/>Serverless Functions]
+        Analytics[Vercel Analytics<br/>Usage Tracking<br/>Performance Monitoring]
+        Build[Next.js Build<br/>Static Generation<br/>Server Components]
+        CDN[Global CDN<br/>Edge Network<br/>Fast Delivery]
+    end
+    
+    subgraph "🔌 External Integrations"
+        FutureMaps[🗺️ Google Maps API<br/>Future: Enhanced Mapping]
+        FutureAI[🤖 OpenAI API<br/>Future: Advanced AI]
+        FutureDB[💾 Database Service<br/>Future: PostgreSQL/MongoDB]
+    end
+    
+    %% Frontend connections
+    KoperUI --> ChatUI
+    KoperUI --> MapUI
+    VerkoperUI --> Header
+    MakelaarUI --> Cards
+    Pages --> KoperUI
+    Pages --> VerkoperUI
+    Pages --> MakelaarUI
+    
+    %% Frontend to Backend
+    ChatUI -->|HTTP POST<br/>JSON| ChatAPI
+    KoperUI -->|HTTP Requests| API
+    VerkoperUI -->|HTTP Requests| API
+    MakelaarUI -->|HTTP Requests| API
+    MapUI -->|Read Data| Props
+    
+    %% Backend to Data
+    ChatAPI -->|Read Property| Properties
+    ChatAPI -->|Generate Response| ChatLogic
+    Props -->|Query| MockData
+    Auth -->|Read/Write| Users
+    Auth -->|Read/Write| LocalStorage
+    
+    %% AI Flow
+    ChatLogic -->|Use SDK| AISDK
+    
+    %% Deployment
+    UI -->|Deploy| Vercel
+    API -->|Deploy| Vercel
+    Vercel --> Analytics
+    Vercel --> Build
+    Vercel --> CDN
+    
+    %% Future integrations (dashed)
+    MapUI -.->|Future| FutureMaps
+    ChatLogic -.->|Future| FutureAI
+    MockData -.->|Migrate| FutureDB
+    
+    %% Styling
+    classDef frontend fill:#e1f5ff,stroke:#01579b,stroke-width:2px
+    classDef backend fill:#fff4e1,stroke:#e65100,stroke-width:2px
+    classDef data fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef ai fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef deploy fill:#ffebee,stroke:#b71c1c,stroke-width:2px
+    classDef future fill:#f5f5f5,stroke:#616161,stroke-width:2px,stroke-dasharray: 5 5
+    
+    class UI,Pages,Routing,KoperUI,VerkoperUI,MakelaarUI,ChatUI,MapUI,Header,Cards frontend
+    class API,ChatAPI,Auth,Props backend
+    class MockData,Properties,Users,LocalStorage data
+    class AISDK,OpenAI,ChatLogic ai
+    class Vercel,Analytics,Build,CDN deploy
+    class FutureMaps,FutureAI,FutureDB future
+

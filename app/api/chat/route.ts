@@ -2,121 +2,112 @@ import { getPropertyById } from '@/lib/properties'
 
 export const maxDuration = 30
 
-function generateResponse(question: string, property: any): string {
-  const lowerQuestion = question.toLowerCase()
-  
-  // Grootte vragen
-  if (lowerQuestion.includes('groot') || lowerQuestion.includes('oppervlakte') || lowerQuestion.includes('vierkante meter')) {
-    if (lowerQuestion.includes('tuin') || lowerQuestion.includes('perceel')) {
-      return property.plotSize 
-        ? `Het perceel is ${property.plotSize}m² groot.`
-        : 'Dit pand heeft geen tuin of perceel.'
+async function generateResponse(question: string, property: any): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY
+
+  if (!apiKey) {
+    console.error('GEMINI_API_KEY is not configured')
+    return 'De AI-assistent is momenteel niet beschikbaar omdat de configuratie ontbreekt.'
+  }
+
+  const propertySummaryParts: string[] = []
+
+  propertySummaryParts.push(
+    `Adres: ${property.address}, ${property.postalCode} ${property.city}.`,
+    `Type: ${property.type}, vraagprijs: €${property.price.toLocaleString('nl-NL')}.`,
+    `Woonoppervlakte: ${property.area}m²${property.plotSize ? `, perceel: ${property.plotSize}m²` : ''}.`,
+    `Kamers: ${property.rooms} totaal, ${property.bedrooms} slaapkamers.`,
+    `Bouwjaar: ${property.buildYear}, energielabel: ${property.energyLabel}.`
+  )
+
+  if (property.features?.length) {
+    propertySummaryParts.push(`Belangrijke kenmerken: ${property.features.join(', ')}.`)
+  }
+
+  if (property.neighborhood?.schools?.length) {
+    const scholen = property.neighborhood.schools
+      .map((s: any) => `${s.name} (${s.type}) op ${s.distance}m`)
+      .join('; ')
+    propertySummaryParts.push(`Scholen in de buurt: ${scholen}.`)
+  }
+
+  if (property.neighborhood?.transport?.length) {
+    const transport = property.neighborhood.transport
+      .map((t: any) => `${t.type} lijn ${t.line}, halte ${t.stop} op ${t.distance}m`)
+      .join('; ')
+    propertySummaryParts.push(`Openbaar vervoer: ${transport}.`)
+  }
+
+  if (property.neighborhood?.sports?.length) {
+    const sports = property.neighborhood.sports
+      .map((s: any) => `${s.name} (${s.type}) op ${s.distance}m`)
+      .join('; ')
+    propertySummaryParts.push(`Sportfaciliteiten: ${sports}.`)
+  }
+
+  if (property.neighborhood?.events?.length) {
+    const events = property.neighborhood.events
+      .map((e: any) => `${e.name} (${e.frequency})`)
+      .join('; ')
+    propertySummaryParts.push(`Evenementen in de buurt: ${events}.`)
+  }
+
+  const systemInstruction =
+    'Je bent een behulpzame Nederlandstalige vastgoedassistent. ' +
+    'Je geeft duidelijke, feitelijke antwoorden op basis van de informatie over het pand hieronder. ' +
+    'Je verzint geen informatie die niet in de pandgegevens staat. ' +
+    'Antwoorden zijn kort en concreet (1 tot 3 alinea\'s).'
+
+  const promptText =
+    `${systemInstruction}\n\n` +
+    `Informatie over het pand:\n` +
+    `${propertySummaryParts.join('\n')}\n\n` +
+    `Vraag van de gebruiker:\n${question}\n\n` +
+    'Beantwoord de vraag in het Nederlands. Verwijs waar relevant naar prijs, grootte, kamers, buurt en bereikbaarheid.'
+
+  try {
+    const res = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-goog-api-key': process.env.GEMINI_API_KEY ?? '',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [{ text: promptText }],
+            },
+          ],
+        }),
+      }
+    )
+    
+    
+
+    if (!res.ok) {
+      console.error('Gemini API error status:', res.status)
+      return 'De AI-assistent kon je vraag nu niet beantwoorden. Probeer het later opnieuw.'
     }
-    return `De woonoppervlakte is ${property.area}m². ${property.plotSize ? `Het totale perceel is ${property.plotSize}m².` : ''}`
-  }
-  
-  // Prijs vragen
-  if (lowerQuestion.includes('prijs') || lowerQuestion.includes('kost') || lowerQuestion.includes('euro')) {
-    const bids = property.bids.length
-    if (bids > 0) {
-      const hoogste = Math.max(...property.bids.map((b: any) => b.amount))
-      return `De vraagprijs is €${property.price.toLocaleString('nl-NL')}. Er zijn momenteel ${bids} biedingen, met de hoogste bieding op €${hoogste.toLocaleString('nl-NL')}.`
+
+    const data: any = await res.json()
+
+    const text =
+      data?.candidates?.[0]?.content?.parts
+        ?.map((p: any) => p.text ?? '')
+        .join('')
+        .trim() ?? ''
+
+    if (!text) {
+      return 'De AI-assistent kon geen zinvol antwoord genereren op basis van de beschikbare gegevens.'
     }
-    return `De vraagprijs is €${property.price.toLocaleString('nl-NL')}.`
+
+    return text
+  } catch (error) {
+    console.error('Error calling Gemini API:', error)
+    return 'Er is een fout opgetreden bij het verbinden met de AI-assistent. Probeer het later opnieuw.'
   }
-  
-  // Kamers
-  if (lowerQuestion.includes('kamer') || lowerQuestion.includes('slaapkamer')) {
-    return `Dit pand heeft ${property.rooms} kamers, waarvan ${property.bedrooms} slaapkamers.`
-  }
-  
-  // Scholen
-  if (lowerQuestion.includes('school') || lowerQuestion.includes('onderwijs')) {
-    const scholen = property.neighborhood.schools.map((s: any) => 
-      `${s.name} (${s.type}) op ${s.distance}m afstand`
-    ).join(', ')
-    return `In de buurt zijn de volgende scholen: ${scholen}.`
-  }
-  
-  // Transport
-  if (lowerQuestion.includes('bus') || lowerQuestion.includes('tram') || lowerQuestion.includes('trein') || lowerQuestion.includes('vervoer') || lowerQuestion.includes('openbaar')) {
-    const transport = property.neighborhood.transport.map((t: any) => 
-      `${t.type} lijn ${t.line}, halte ${t.stop} op ${t.distance}m`
-    ).join(', ')
-    return `De dichtstbijzijnde haltes zijn: ${transport}.`
-  }
-  
-  // Bushalte specifiek
-  if (lowerQuestion.includes('bushalte') || lowerQuestion.includes('bus halte')) {
-    const bus = property.neighborhood.transport.find((t: any) => t.type === 'bus')
-    if (bus) {
-      return `De dichtstbijzijnde bushalte is ${bus.stop}, op ${bus.distance}m afstand (lijn ${bus.line}).`
-    }
-    return 'Er is geen bushalte in de directe omgeving.'
-  }
-  
-  // Sport
-  if (lowerQuestion.includes('sport') || lowerQuestion.includes('fitness') || lowerQuestion.includes('gym')) {
-    const sport = property.neighborhood.sports.map((s: any) => 
-      `${s.name} (${s.type}) op ${s.distance}m`
-    ).join(', ')
-    return `In de buurt zijn de volgende sportfaciliteiten: ${sport}.`
-  }
-  
-  // Evenementen
-  if (lowerQuestion.includes('evenement') || lowerQuestion.includes('activiteit') || lowerQuestion.includes('festival')) {
-    const events = property.neighborhood.events.map((e: any) => 
-      `${e.name} (${e.frequency})`
-    ).join(', ')
-    return `Jaarlijkse evenementen in de buurt: ${events}.`
-  }
-  
-  // Bouwjaar
-  if (lowerQuestion.includes('bouwjaar') || lowerQuestion.includes('oud') || lowerQuestion.includes('gebouwd')) {
-    return `Dit pand is gebouwd in ${property.buildYear}.`
-  }
-  
-  // Energie
-  if (lowerQuestion.includes('energie') || lowerQuestion.includes('label')) {
-    return `Het energielabel van dit pand is ${property.energyLabel}.`
-  }
-  
-  // Status
-  if (lowerQuestion.includes('status') || lowerQuestion.includes('fase') || lowerQuestion.includes('verkoop')) {
-    return `Het pand bevindt zich in de fase: ${property.status}. Er zijn ${property.visits.length} bezichtigingen geweest en ${property.interested} geïnteresseerden.`
-  }
-  
-  // Interest/bezichtigingen
-  if (lowerQuestion.includes('interesse') || lowerQuestion.includes('bezichtig') || lowerQuestion.includes('bezoek')) {
-    return `Er zijn ${property.visits.length} bezichtigingen geweest en ${property.interested} mensen hebben interesse getoond. ${property.views} mensen hebben de advertentie bekeken.`
-  }
-  
-  // Biedingen
-  if (lowerQuestion.includes('bieding') || lowerQuestion.includes('bod')) {
-    if (property.bids.length === 0) {
-      return 'Er zijn nog geen biedingen gedaan op dit pand.'
-    }
-    const hoogste = Math.max(...property.bids.map((b: any) => b.amount))
-    return `Er zijn ${property.bids.length} biedingen gedaan. De hoogste bieding is €${hoogste.toLocaleString('nl-NL')}.`
-  }
-  
-  // Kenmerken
-  if (lowerQuestion.includes('kenmerk') || lowerQuestion.includes('heeft') || lowerQuestion.includes('voorziening')) {
-    return `De belangrijkste kenmerken zijn: ${property.features.join(', ')}.`
-  }
-  
-  // Locatie/adres
-  if (lowerQuestion.includes('adres') || lowerQuestion.includes('waar') || lowerQuestion.includes('locatie')) {
-    return `Het pand bevindt zich op ${property.address}, ${property.postalCode} ${property.city}.`
-  }
-  
-  // Algemene info
-  if (lowerQuestion.includes('vertel') || lowerQuestion.includes('info') || lowerQuestion.includes('beschrijving')) {
-    return `${property.description} Het pand heeft ${property.rooms} kamers, ${property.area}m² woonoppervlakte en is gebouwd in ${property.buildYear}.`
-  }
-  
-  // Default response
-  return `Ik kan je helpen met vragen over dit pand. Vraag bijvoorbeeld naar de prijs, grootte, kamers, scholen in de buurt, openbaar vervoer, of de status van de verkoop.`
 }
 
 export async function POST(req: Request) {
@@ -129,7 +120,7 @@ export async function POST(req: Request) {
   }
 
   const lastMessage = messages[messages.length - 1]
-  const response = generateResponse(lastMessage.content, property)
+  const response = await generateResponse(lastMessage.content, property)
   
   // Create a streaming response similar to AI SDK format
   const encoder = new TextEncoder()
