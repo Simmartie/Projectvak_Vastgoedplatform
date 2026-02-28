@@ -2,14 +2,7 @@ import { getPropertyById } from '@/lib/properties'
 
 export const maxDuration = 30
 
-async function generateResponse(question: string, property: any): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY
-
-  if (!apiKey) {
-    console.error('GEMINI_API_KEY is not configured')
-    return 'De AI-assistent is momenteel niet beschikbaar omdat de configuratie ontbreekt.'
-  }
-
+function buildPrompt(question: string, property: any): string {
   const propertySummaryParts: string[] = []
 
   propertySummaryParts.push(
@@ -53,94 +46,101 @@ async function generateResponse(question: string, property: any): Promise<string
   }
 
   const systemInstruction =
-    'Je bent een behulpzame Nederlandstalige vastgoedassistent. ' +
-    'Je geeft duidelijke, feitelijke antwoorden op basis van de informatie over het pand hieronder. ' +
-    'Je verzint geen informatie die niet in de pandgegevens staat. ' +
-    'Antwoorden zijn kort en concreet (1 tot 3 alinea\'s).'
+    'Je bent een Nederlandstalige vastgoedassistent. ' +
+    'Beantwoord ALLEEN de specifieke vraag van de gebruiker. Geef geen extra informatie over prijs, grootte, kamers, buurt of andere onderwerpen tenzij de gebruiker daar expliciet naar vraagt. ' +
+    'Bijvoorbeeld: bij "Wat is het energielabel?" antwoord je alleen met het label (bijv. "C"), niet met prijs of andere details. ' +
+    'Je verzint geen informatie die niet in de pandgegevens staat. Antwoorden zijn kort: één zin of een korte opsomming als de vraag om meerdere dingen vraagt.'
 
   const promptText =
     `${systemInstruction}\n\n` +
     `Informatie over het pand:\n` +
     `${propertySummaryParts.join('\n')}\n\n` +
     `Vraag van de gebruiker:\n${question}\n\n` +
-    'Beantwoord de vraag in het Nederlands. Verwijs waar relevant naar prijs, grootte, kamers, buurt en bereikbaarheid.'
+    'Beantwoord de vraag in het Nederlands.'
 
-  try {
-    const res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-goog-api-key': process.env.GEMINI_API_KEY ?? '',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [{ text: promptText }],
-            },
-          ],
-        }),
-      }
-    )
-    
-    
-
-    if (!res.ok) {
-      console.error('Gemini API error status:', res.status)
-      return 'De AI-assistent kon je vraag nu niet beantwoorden. Probeer het later opnieuw.'
-    }
-
-    const data: any = await res.json()
-
-    const text =
-      data?.candidates?.[0]?.content?.parts
-        ?.map((p: any) => p.text ?? '')
-        .join('')
-        .trim() ?? ''
-
-    if (!text) {
-      return 'De AI-assistent kon geen zinvol antwoord genereren op basis van de beschikbare gegevens.'
-    }
-
-    return text
-  } catch (error) {
-    console.error('Error calling Gemini API:', error)
-    return 'Er is een fout opgetreden bij het verbinden met de AI-assistent. Probeer het later opnieuw.'
-  }
+  return promptText
 }
 
 export async function POST(req: Request) {
   const { messages, propertyId } = await req.json()
 
   const property = getPropertyById(propertyId)
-  
+
   if (!property) {
     return new Response('Property not found', { status: 404 })
   }
 
+  const apiKey = process.env.GEMINI_API_KEY
+
+  if (!apiKey) {
+    console.error('GEMINI_API_KEY is not configured')
+    return new Response(
+      'De AI-assistent is momenteel niet beschikbaar omdat de configuratie ontbreekt.',
+      { status: 500 }
+    )
+  }
+
   const lastMessage = messages[messages.length - 1]
-  const response = await generateResponse(lastMessage.content, property)
-  
-  // Create a streaming response similar to AI SDK format
+  const promptText = buildPrompt(lastMessage.content, property)
+
   const encoder = new TextEncoder()
-  const stream = new ReadableStream({
-    start(controller) {
-      // Send the response in chunks to simulate streaming
-      const chunks = response.split(' ')
-      let index = 0
-      
-      const interval = setInterval(() => {
-        if (index < chunks.length) {
-          const text = (index === 0 ? '' : ' ') + chunks[index]
-          controller.enqueue(encoder.encode(`0:${JSON.stringify(text)}\n`))
-          index++
-        } else {
-          clearInterval(interval)
+
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        const res = await fetch(
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-goog-api-key': apiKey,
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [{ text: promptText }],
+                },
+              ],
+            }),
+          }
+        )
+
+        if (!res.ok) {
+          console.error('Gemini API error status:', res.status)
+          controller.enqueue(
+            encoder.encode(
+              `0:${JSON.stringify(
+                'De AI-assistent kon je vraag nu niet beantwoorden. Probeer het later opnieuw.'
+              )}\n`
+            )
+          )
           controller.close()
+          return
         }
-      }, 30)
-    }
+
+        const json = (await res.json()) as any
+        const parts = json?.candidates?.[0]?.content?.parts ?? []
+        const text = parts.map((p: any) => p.text ?? '').join('').trim()
+
+        const answer =
+          text ||
+          'De AI-assistent kon je vraag nu niet beantwoorden. Probeer het later opnieuw.'
+
+        controller.enqueue(encoder.encode(`0:${JSON.stringify(answer)}\n`))
+        controller.close()
+      } catch (error) {
+        console.error('Error calling Gemini API:', error)
+        controller.enqueue(
+          encoder.encode(
+            `0:${JSON.stringify(
+              'Er is een fout opgetreden bij het verbinden met de AI-assistent. Probeer het later opnieuw.'
+            )}\n`
+          )
+        )
+        controller.close()
+      }
+    },
   })
 
   return new Response(stream, {

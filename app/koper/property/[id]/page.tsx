@@ -259,7 +259,7 @@ export default function KoperPropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card data-chat-card>
+            <Card id="chat" data-chat-card>
               <CardHeader>
                 <CardTitle>Vragen over dit pand?</CardTitle>
                 <CardDescription>Stel je vragen direct aan onze AI assistent</CardDescription>

@@ -380,7 +380,7 @@ export default function KoperDashboard() {
                           Bekijk Details
                         </Button>
                       </Link>
-                      <Link href={`/koper/property/${property.id}/chat`}>
+                      <Link href={`/koper/property/${property.id}#chat`}>
                         <Button variant="outline" size="icon">
                           <MessageSquare className="h-4 w-4" />
                         </Button>
