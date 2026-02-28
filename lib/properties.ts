@@ -859,6 +859,7 @@ export const MOCK_PROPERTIES: Property[] = [
 ]
 
 export function getProperties(): Property[] {
+  // Force turbopack recompile
   if (typeof window !== 'undefined') {
     const stored = localStorage.getItem('vastgoed_properties_v2')
     if (stored) {
