@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Background -->
+  <rect width="200" height="200" fill="#F8F8F7" rx="0"/>
+  
+  <!-- Upper chevron (top-left stroke) -->
+  <path d="M 55 85 L 100 45 L 130 72" stroke="#6B9FD4" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  
+  <!-- Lower chevron -->
+  <path d="M 70 105 L 100 78 L 145 115" stroke="#6B9FD4" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- "Opt" in dark -->
+  <text x="37" y="158" font-family="'Arial Rounded MT Bold', 'Nunito', Arial, sans-serif" font-size="28" font-weight="900" fill="#1a1a1a">Opt</text>
+  <!-- "immo" in blue -->
+  <text x="89" y="158" font-family="'Arial Rounded MT Bold', 'Nunito', Arial, sans-serif" font-size="28" font-weight="900" fill="#6B9FD4">immo</text>
+</svg>

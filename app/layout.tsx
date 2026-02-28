@@ -7,8 +7,8 @@ const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Vastgoed Platform - Real Estate Management',
-  description: 'Platform voor makelaars, verkopers en kopers om vastgoeddossiers te beheren',
+  title: 'Optimmo - Vastgoedbeheer Platform',
+  description: 'Optimmo: het platform voor makelaars, verkopers en kopers om vastgoeddossiers te beheren',
   generator: 'v0.app',
   icons: {
     icon: [

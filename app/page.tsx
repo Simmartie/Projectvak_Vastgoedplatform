@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Building2 } from 'lucide-react'
+import Image from 'next/image'
 import { login } from '@/lib/auth'
 
 export default function LoginPage() {
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     const user = login(email)
-    
+
     if (user) {
       // Route to appropriate dashboard based on role
       switch (user.role) {
@@ -41,11 +41,8 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg">
-              <Building2 className="h-8 w-8" />
-            </div>
+            <Image src="/optimmo-logo.svg" alt="Optimmo" width={160} height={80} priority />
           </div>
-          <CardTitle className="text-2xl">Vastgoed Platform</CardTitle>
           <CardDescription>
             Log in om uw dossiers te bekijken
           </CardDescription>
@@ -63,11 +60,11 @@ export default function LoginPage() {
                 required
               />
             </div>
-            
+
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
-            
+
             <Button type="submit" className="w-full">
               Inloggen
             </Button>

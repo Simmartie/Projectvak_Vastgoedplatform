@@ -1,10 +1,11 @@
 'use client'
 
-import { Building2, LogOut, Calendar, ArrowLeft } from 'lucide-react'
+import { LogOut, Calendar, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, logout } from '@/lib/auth'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export function Header() {
   const user = getCurrentUser()
@@ -34,14 +35,8 @@ export function Header() {
   return (
     <header className="border-b bg-card">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href={dashboardUrl} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div className="bg-primary text-primary-foreground p-2 rounded-lg">
-            <Building2 className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-lg">Vastgoed Platform</h1>
-            <p className="text-sm text-muted-foreground">{getRoleLabel()} Dashboard</p>
-          </div>
+        <Link href={dashboardUrl} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Image src="/optimmo-logo.svg" alt="Optimmo" width={110} height={55} priority />
         </Link>
 
         <div className="flex items-center gap-4">
