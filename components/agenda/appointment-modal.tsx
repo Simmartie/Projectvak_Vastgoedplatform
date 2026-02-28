@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,6 +47,7 @@ export function AppointmentModal({
     onSave,
     prefilledData
 }: AppointmentModalProps) {
+    const router = useRouter()
     const isEditing = !!appointment
     const isMakelaar = currentUser?.role === 'makelaar'
 
@@ -83,13 +85,26 @@ export function AppointmentModal({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
+        let finalParticipantIds = [...participantIds];
+
+        // Auto-link seller if a property is selected
+        if (propertyId !== 'none') {
+            const selectedProperty = MOCK_PROPERTIES.find((p) => p.id === propertyId);
+            if (selectedProperty && selectedProperty.sellerId) {
+                // Ensure the seller is included in the final participant list
+                if (!finalParticipantIds.includes(selectedProperty.sellerId)) {
+                    finalParticipantIds.push(selectedProperty.sellerId);
+                }
+            }
+        }
+
         const appointmentData = {
             title,
             date,
             startTime,
             endTime,
             propertyId: propertyId === 'none' ? undefined : propertyId,
-            participantIds,
+            participantIds: finalParticipantIds,
             description,
         }
 
@@ -170,27 +185,39 @@ export function AppointmentModal({
 
                         <div className="grid gap-2">
                             <Label htmlFor="property">Gekoppeld Pand (Optioneel)</Label>
-                            <Select value={propertyId} onValueChange={setPropertyId} disabled={!isMakelaar}>
-                                <SelectTrigger id="property">
-                                    <SelectValue placeholder="Selecteer een pand" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="none">Geen pand gekoppeld</SelectItem>
-                                    {MOCK_PROPERTIES.map((prop) => (
-                                        <SelectItem key={prop.id} value={prop.id}>
-                                            {prop.address}, {prop.city}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="flex gap-2 items-center">
+                                <Select value={propertyId} onValueChange={setPropertyId} disabled={!isMakelaar}>
+                                    <SelectTrigger id="property" className="flex-1">
+                                        <SelectValue placeholder="Selecteer een pand" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">Geen pand gekoppeld</SelectItem>
+                                        {MOCK_PROPERTIES.map((prop) => (
+                                            <SelectItem key={prop.id} value={prop.id}>
+                                                {prop.address}, {prop.city}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {isMakelaar && propertyId !== 'none' && (
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        onClick={() => router.push(`/makelaar/property/${propertyId}`)}
+                                        className="shrink-0"
+                                    >
+                                        Naar Dossier
+                                    </Button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Participants Selection (Makelaar only) */}
                         {isMakelaar && (
                             <div className="grid gap-2">
-                                <Label>Deelnemers (Kopers / Verkopers)</Label>
+                                <Label>Selecteer Kopers (Verkoper wordt automatisch gekoppeld)</Label>
                                 <div className="border rounded-md p-3 max-h-[120px] overflow-y-auto space-y-2">
-                                    {MOCK_USERS.map((user) => (
+                                    {MOCK_USERS.filter(u => u.role === 'koper' || u.role === 'makelaar').map((user) => (
                                         <div key={user.id} className="flex items-center space-x-2">
                                             <input
                                                 type="checkbox"

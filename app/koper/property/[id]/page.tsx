@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Building2, MapPin, Ruler, Calendar, Zap, Home, Heart, MessageSquare, Phone, Mail, ArrowLeft, GraduationCap, Dumbbell, Bus, CalendarDays } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
+import { PropertyImageCarousel } from '@/components/properties/property-image-carousel'
 
 export default function KoperPropertyDetailPage() {
   const router = useRouter()
@@ -53,11 +54,11 @@ export default function KoperPropertyDetailPage() {
           <div className="lg:col-span-2 space-y-6">
             <Card>
               <CardContent className="p-0">
-                <div className="aspect-video bg-muted overflow-hidden relative">
-                  <img
-                    src={property.images[0] || "/placeholder.svg"}
+                <div className="aspect-video bg-muted overflow-hidden relative rounded-t-lg">
+                  <PropertyImageCarousel
+                    images={property.images}
                     alt={property.address}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full"
                   />
                   <div className="absolute top-4 right-4">
                     <Button
@@ -330,25 +331,7 @@ export default function KoperPropertyDetailPage() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Foto's</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-2">
-                  {property.images.slice(1, 5).map((image, index) => (
-                    <div key={index} className="aspect-square bg-muted rounded-lg overflow-hidden">
-                      <img
-                        src={image || "/placeholder.svg"}
-                        alt={`${property.address} foto ${index + 2}`}
-                        className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {/* Removed the extra image grid card */}
           </div>
         </div>
       </main>
