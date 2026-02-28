@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { getCurrentUser } from '@/lib/auth'
+import { getCurrentUser, MOCK_USERS } from '@/lib/auth'
 import { getPropertyById, Property } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -13,6 +13,7 @@ import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, 
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
+import { PropertyImageCarousel } from '@/components/properties/property-image-carousel'
 
 export default function PropertyDetailPage() {
   const router = useRouter()
@@ -41,6 +42,8 @@ export default function PropertyDetailPage() {
     ? property.bids.reduce((sum, bid) => sum + bid.amount, 0) / property.bids.length
     : 0
 
+  const seller = MOCK_USERS.find(u => u.id === property.sellerId)
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -60,10 +63,10 @@ export default function PropertyDetailPage() {
             <Card>
               <CardContent className="p-0">
                 <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
-                  <img
-                    src={property.images[0] || "/placeholder.svg"}
+                  <PropertyImageCarousel
+                    images={property.images}
                     alt={property.address}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full"
                   />
                 </div>
                 <div className="p-6">
@@ -393,6 +396,28 @@ export default function PropertyDetailPage() {
                       €{avgBidAmount.toLocaleString('nl-NL', { maximumFractionDigits: 0 })}
                     </p>
                   </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Verkoper (Eigenaar)</CardTitle>
+                <CardDescription>Contactgegevens van de eigenaar</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {seller ? (
+                  <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                    <div className="bg-primary text-primary-foreground p-2 rounded-full h-12 w-12 flex items-center justify-center font-bold uppercase">
+                      {seller.name.substring(0, 2)}
+                    </div>
+                    <div>
+                      <p className="font-medium">{seller.name}</p>
+                      <p className="text-sm text-muted-foreground">{seller.email}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Geen verkoper gekoppeld</p>
                 )}
               </CardContent>
             </Card>

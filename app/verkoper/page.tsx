@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { Eye, Users, TrendingUp, Euro, Clock, MapPin, CheckCircle2, Calendar, Building2 } from 'lucide-react'
+import { PropertyImageCarousel } from '@/components/properties/property-image-carousel'
 
 export default function VerkoperDashboard() {
   const router = useRouter()
@@ -102,10 +103,10 @@ export default function VerkoperDashboard() {
               <CardContent className="p-6">
                 <div className="flex flex-col md:flex-row gap-6">
                   <div className="md:w-64 h-48 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                    <img
-                      src={property.images[0] || "/placeholder.svg"}
+                    <PropertyImageCarousel
+                      images={property.images}
                       alt={property.address}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full"
                     />
                   </div>
 

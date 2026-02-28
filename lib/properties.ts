@@ -107,8 +107,10 @@ export const MOCK_PROPERTIES: Property[] = [
       '/modern-dutch-house-exterior.jpg',
       '/modern-living-room.png',
       '/modern-kitchen.png',
+      '/modern-home-office.png',
+      '/luxury-apartment-interior.png',
     ],
-    sellerId: '2',
+    sellerId: 'v1',
     views: 342,
     visits: [
       {
@@ -227,8 +229,10 @@ export const MOCK_PROPERTIES: Property[] = [
       '/canal-house-amsterdam.jpg',
       '/luxury-apartment-interior.png',
       '/canal-view-balcony.jpg',
+      '/modern-kitchen.png',
+      '/modern-living-room.png',
     ],
-    sellerId: '5',
+    sellerId: 'v2',
     views: 567,
     visits: [],
     bids: [],
@@ -294,8 +298,10 @@ export const MOCK_PROPERTIES: Property[] = [
       '/luxury-villa-amsterdam.jpg',
       '/spacious-garden.jpg',
       '/modern-home-office.png',
+      '/modern-living-room.png',
+      '/modern-kitchen.png',
     ],
-    sellerId: '6',
+    sellerId: 'v3',
     views: 189,
     visits: [],
     bids: [],
@@ -377,8 +383,9 @@ export const MOCK_PROPERTIES: Property[] = [
       '/modern-dutch-house-exterior.jpg',
       '/modern-living-room.png',
       '/modern-kitchen.png',
+      '/spacious-garden.jpg',
     ],
-    sellerId: '2',
+    sellerId: 'v4',
     views: 156,
     visits: [],
     bids: [],
@@ -442,8 +449,9 @@ export const MOCK_PROPERTIES: Property[] = [
       '/luxury-apartment-interior.png',
       '/canal-view-balcony.jpg',
       '/modern-kitchen.png',
+      '/modern-living-room.png',
     ],
-    sellerId: '5',
+    sellerId: 'v5',
     views: 289,
     visits: [
       {
@@ -522,8 +530,10 @@ export const MOCK_PROPERTIES: Property[] = [
       '/canal-house-amsterdam.jpg',
       '/modern-living-room.png',
       '/modern-kitchen.png',
+      '/modern-home-office.png',
+      '/spacious-garden.jpg',
     ],
-    sellerId: '6',
+    sellerId: 'v6',
     views: 234,
     visits: [],
     bids: [],
@@ -594,8 +604,10 @@ export const MOCK_PROPERTIES: Property[] = [
       '/luxury-villa-amsterdam.jpg',
       '/spacious-garden.jpg',
       '/modern-home-office.png',
+      '/modern-living-room.png',
+      '/modern-kitchen.png',
     ],
-    sellerId: '2',
+    sellerId: 'v7',
     views: 412,
     visits: [],
     bids: [],
@@ -660,8 +672,9 @@ export const MOCK_PROPERTIES: Property[] = [
       '/modern-dutch-house-exterior.jpg',
       '/modern-living-room.png',
       '/spacious-garden.jpg',
+      '/modern-kitchen.png',
     ],
-    sellerId: '5',
+    sellerId: 'v8',
     views: 178,
     visits: [],
     bids: [],
@@ -726,8 +739,11 @@ export const MOCK_PROPERTIES: Property[] = [
       '/luxury-villa-amsterdam.jpg',
       '/modern-home-office.png',
       '/spacious-garden.jpg',
+      '/modern-living-room.png',
+      '/modern-kitchen.png',
+      '/luxury-apartment-interior.png',
     ],
-    sellerId: '6',
+    sellerId: 'v9',
     views: 267,
     visits: [],
     bids: [],
@@ -792,8 +808,10 @@ export const MOCK_PROPERTIES: Property[] = [
       '/modern-dutch-house-exterior.jpg',
       '/modern-living-room.png',
       '/modern-kitchen.png',
+      '/spacious-garden.jpg',
+      '/modern-home-office.png',
     ],
-    sellerId: '2',
+    sellerId: 'v10',
     views: 145,
     visits: [],
     bids: [],
@@ -842,11 +860,11 @@ export const MOCK_PROPERTIES: Property[] = [
 
 export function getProperties(): Property[] {
   if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('vastgoed_properties')
+    const stored = localStorage.getItem('vastgoed_properties_v2')
     if (stored) {
       return JSON.parse(stored)
     }
-    localStorage.setItem('vastgoed_properties', JSON.stringify(MOCK_PROPERTIES))
+    localStorage.setItem('vastgoed_properties_v2', JSON.stringify(MOCK_PROPERTIES))
   }
   return MOCK_PROPERTIES
 }
@@ -875,7 +893,7 @@ export function updateProperty(updatedProperty: Property): void {
     MOCK_PROPERTIES[index] = updatedProperty
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem('vastgoed_properties', JSON.stringify(properties))
+      localStorage.setItem('vastgoed_properties_v2', JSON.stringify(properties))
     }
   }
 }
