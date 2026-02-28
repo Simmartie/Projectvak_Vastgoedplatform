@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Building2 } from 'lucide-react'
+import { OptimmoLogo } from '@/components/optimmo-logo'
 import { login } from '@/lib/auth'
 
 export default function LoginPage() {
@@ -17,9 +17,8 @@ export default function LoginPage() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault()
     const user = login(email)
-    
+
     if (user) {
-      // Route to appropriate dashboard based on role
       switch (user.role) {
         case 'makelaar':
           router.push('/makelaar')
@@ -40,12 +39,9 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
-          <div className="flex justify-center mb-4">
-            <div className="bg-primary text-primary-foreground p-3 rounded-lg">
-              <Building2 className="h-8 w-8" />
-            </div>
+          <div className="flex justify-center mb-2">
+            <OptimmoLogo width={280} />
           </div>
-          <CardTitle className="text-2xl">Vastgoed Platform</CardTitle>
           <CardDescription>
             Log in om uw dossiers te bekijken
           </CardDescription>
@@ -63,11 +59,11 @@ export default function LoginPage() {
                 required
               />
             </div>
-            
+
             {error && (
               <p className="text-sm text-destructive">{error}</p>
             )}
-            
+
             <Button type="submit" className="w-full">
               Inloggen
             </Button>
