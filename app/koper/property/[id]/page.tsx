@@ -38,7 +38,7 @@ export default function KoperPropertyDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Link href="/koper">
@@ -283,11 +283,13 @@ export default function KoperPropertyDetailPage() {
                   <Heart className="h-4 w-4 mr-2" />
                   Opslaan als favoriet
                 </Button>
-                <Button variant="outline" className="w-full">
-                  Plan Bezichtiging
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href={`/agenda?propertyId=${property.id}&title=Bezichtiging pand ${property.address}&sellerId=${property.sellerId}`}>
+                    Plan Bezichtiging
+                  </Link>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full bg-primary text-card"
                   onClick={() => {
                     const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
