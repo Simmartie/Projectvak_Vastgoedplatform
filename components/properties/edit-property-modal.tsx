@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Property, updateProperty } from '@/lib/properties'
-import { Trash2, Plus, MoveUp, MoveDown } from 'lucide-react'
+import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface EditPropertyModalProps {
@@ -20,6 +20,7 @@ interface EditPropertyModalProps {
 
 export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPropertyModalProps) {
     const [formData, setFormData] = useState<Property>(property)
+    const [isGenerating, setIsGenerating] = useState(false)
 
     useEffect(() => {
         if (isOpen) {
@@ -39,6 +40,30 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
 
     const handleSelectChange = (name: string, value: string) => {
         setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleGenerateDescription = async () => {
+        try {
+            setIsGenerating(true)
+            const response = await fetch('/api/generate-description', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ property: formData }),
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to generate description')
+            }
+
+            const data = await response.json()
+            if (data.text) {
+                setFormData(prev => ({ ...prev, description: data.text }))
+            }
+        } catch (error) {
+            console.error('Error generating description:', error)
+        } finally {
+            setIsGenerating(false)
+        }
     }
 
     // Image Array Operations
@@ -223,14 +248,32 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
 
                             <hr />
 
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Beschrijving</Label>
+                            <div className="space-y-2 relative group flex flex-col">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="description">Beschrijving</Label>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={handleGenerateDescription}
+                                        disabled={isGenerating}
+                                        className="h-8 flex items-center gap-1.5 transition-opacity duration-200"
+                                    >
+                                        {isGenerating ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                        ) : (
+                                            <Sparkles className="h-4 w-4 text-amber-500" />
+                                        )}
+                                        {isGenerating ? 'Genereren...' : 'Genereer beschrijving'}
+                                    </Button>
+                                </div>
                                 <Textarea
                                     id="description"
                                     name="description"
-                                    rows={5}
+                                    rows={10}
                                     value={formData.description}
                                     onChange={handleTextChange}
+                                    className="resize-none"
                                     required
                                 />
                             </div>
