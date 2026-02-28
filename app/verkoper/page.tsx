@@ -8,7 +8,8 @@ import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { Eye, Users, TrendingUp, Euro, Clock, MapPin, CheckCircle2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Eye, Users, TrendingUp, Euro, Clock, MapPin, CheckCircle2, Calendar, Building2 } from 'lucide-react'
 
 export default function VerkoperDashboard() {
   const router = useRouter()
@@ -78,20 +79,20 @@ export default function VerkoperDashboard() {
 
   const bidRange = property.bids.length > 0
     ? {
-        min: Math.min(...property.bids.map(b => b.amount)),
-        max: Math.max(...property.bids.map(b => b.amount)),
-      }
+      min: Math.min(...property.bids.map(b => b.amount)),
+      max: Math.max(...property.bids.map(b => b.amount)),
+    }
     : null
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Mijn Pand</h2>
+          <h2 className="text-3xl font-bold mb-2">Mijn Verkoop</h2>
           <p className="text-muted-foreground">
-            Volg de status van uw verkoop
+            Volg de status van uw verkoop en beheer afspraken
           </p>
         </div>
 
@@ -107,7 +108,7 @@ export default function VerkoperDashboard() {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  
+
                   <div className="flex-1 space-y-4">
                     <div>
                       <h3 className="text-2xl font-bold mb-2">{property.address}</h3>
@@ -154,51 +155,45 @@ export default function VerkoperDashboard() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className={`p-3 rounded-lg text-center ${
-                    ['intake', 'fotografie', 'online', 'bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`p-3 rounded-lg text-center ${['intake', 'fotografie', 'online', 'bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                    }`}>
                     <CheckCircle2 className="h-5 w-5 mx-auto mb-1" />
                     <p className="text-xs font-medium">Intake</p>
                   </div>
-                  <div className={`p-3 rounded-lg text-center ${
-                    ['fotografie', 'online', 'bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`p-3 rounded-lg text-center ${['fotografie', 'online', 'bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                    }`}>
                     <CheckCircle2 className="h-5 w-5 mx-auto mb-1" />
                     <p className="text-xs font-medium">Fotografie</p>
                   </div>
-                  <div className={`p-3 rounded-lg text-center ${
-                    ['online', 'bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`p-3 rounded-lg text-center ${['online', 'bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                    }`}>
                     <CheckCircle2 className="h-5 w-5 mx-auto mb-1" />
                     <p className="text-xs font-medium">Online</p>
                   </div>
-                  <div className={`p-3 rounded-lg text-center ${
-                    ['bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`p-3 rounded-lg text-center ${['bezichtigingen', 'onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                    }`}>
                     <CheckCircle2 className="h-5 w-5 mx-auto mb-1" />
                     <p className="text-xs font-medium">Bezichtigingen</p>
                   </div>
-                  <div className={`p-3 rounded-lg text-center ${
-                    ['onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`p-3 rounded-lg text-center ${['onderhandeling', 'afgerond'].indexOf(property.phase) >= 0
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                    }`}>
                     <CheckCircle2 className="h-5 w-5 mx-auto mb-1" />
                     <p className="text-xs font-medium">Onderhandeling</p>
                   </div>
-                  <div className={`p-3 rounded-lg text-center ${
-                    property.phase === 'afgerond'
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
-                  }`}>
+                  <div className={`p-3 rounded-lg text-center ${property.phase === 'afgerond'
+                    ? 'bg-primary/10 text-primary'
+                    : 'bg-muted text-muted-foreground'
+                    }`}>
                     <CheckCircle2 className="h-5 w-5 mx-auto mb-1" />
                     <p className="text-xs font-medium">Afgerond</p>
                   </div>
@@ -262,55 +257,57 @@ export default function VerkoperDashboard() {
               </CardContent>
             </Card>
 
-            {property.bids.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Biedingen</CardTitle>
-                  <CardDescription>
-                    Overzicht van ontvangen biedingen
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {property.bids.map((bid) => (
-                      <div
-                        key={bid.id}
-                        className="border rounded-lg p-4 space-y-2"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(bid.date).toLocaleDateString('nl-NL')}
-                            </p>
+            {
+              property.bids.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Biedingen</CardTitle>
+                    <CardDescription>
+                      Overzicht van ontvangen biedingen
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {property.bids.map((bid) => (
+                        <div
+                          key={bid.id}
+                          className="border rounded-lg p-4 space-y-2"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="text-sm text-muted-foreground">
+                                {new Date(bid.date).toLocaleDateString('nl-NL')}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-bold text-primary">
+                                €{bid.amount.toLocaleString('nl-NL')}
+                              </p>
+                              <Badge variant={
+                                bid.status === 'accepted' ? 'default' :
+                                  bid.status === 'rejected' ? 'destructive' :
+                                    'secondary'
+                              }>
+                                {bid.status === 'pending' ? 'In behandeling' :
+                                  bid.status === 'accepted' ? 'Geaccepteerd' :
+                                    'Afgewezen'}
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-primary">
-                              €{bid.amount.toLocaleString('nl-NL')}
-                            </p>
-                            <Badge variant={
-                              bid.status === 'accepted' ? 'default' :
-                              bid.status === 'rejected' ? 'destructive' :
-                              'secondary'
-                            }>
-                              {bid.status === 'pending' ? 'In behandeling' :
-                               bid.status === 'accepted' ? 'Geaccepteerd' :
-                               'Afgewezen'}
-                            </Badge>
-                          </div>
+                          {bid.comments && (
+                            <div className="bg-muted p-3 rounded-lg">
+                              <p className="text-sm text-muted-foreground">
+                                {bid.comments}
+                              </p>
+                            </div>
+                          )}
                         </div>
-                        {bid.comments && (
-                          <div className="bg-muted p-3 rounded-lg">
-                            <p className="text-sm text-muted-foreground">
-                              {bid.comments}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            }
           </div>
 
           <div className="space-y-6">
@@ -395,9 +392,8 @@ export default function VerkoperDashboard() {
                   </div>
                   <div className="pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-1">Verschil met vraagprijs</p>
-                    <p className={`text-lg font-medium ${
-                      highestBid >= property.price ? 'text-accent' : 'text-muted-foreground'
-                    }`}>
+                    <p className={`text-lg font-medium ${highestBid >= property.price ? 'text-accent' : 'text-muted-foreground'
+                      }`}>
                       {highestBid >= property.price ? '+' : ''}
                       €{(highestBid - property.price).toLocaleString('nl-NL')}
                     </p>

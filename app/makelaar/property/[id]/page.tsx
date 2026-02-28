@@ -12,11 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
+import { EditPropertyModal } from '@/components/properties/edit-property-modal'
 
 export default function PropertyDetailPage() {
   const router = useRouter()
   const params = useParams()
   const [property, setProperty] = useState<Property | null>(null)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -42,7 +44,7 @@ export default function PropertyDetailPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <Link href="/makelaar">
@@ -73,10 +75,15 @@ export default function PropertyDetailPage() {
                         {property.city}, {property.postalCode}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end">
                       <p className="text-3xl font-bold text-primary">
                         €{property.price.toLocaleString('nl-NL')}
                       </p>
+                      {property.previousPrice && property.previousPrice !== property.price && (
+                        <p className={`text-sm mt-1 font-medium ${property.price > property.previousPrice ? 'text-destructive' : 'text-green-600'}`}>
+                          {property.price > property.previousPrice ? '+' : ''}€{(property.price - property.previousPrice).toLocaleString('nl-NL')} tov vorige prijs
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -229,8 +236,8 @@ export default function PropertyDetailPage() {
                           </p>
                           <Badge variant={
                             bid.status === 'accepted' ? 'default' :
-                            bid.status === 'rejected' ? 'destructive' :
-                            'secondary'
+                              bid.status === 'rejected' ? 'destructive' :
+                                'secondary'
                           }>
                             {bid.status}
                           </Badge>
@@ -395,14 +402,16 @@ export default function PropertyDetailPage() {
                 <CardTitle>Acties</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={() => setIsEditModalOpen(true)}>
                   Bewerk Pand
                 </Button>
-                <Button className="w-full" variant="outline">
-                  Plan Bezichtiging
+                <Button className="w-full" variant="outline" asChild>
+                  <Link href={`/agenda?propertyId=${property.id}&title=Bezichtiging pand ${property.address}&sellerId=${property.sellerId}`}>
+                    Plan Bezichtiging
+                  </Link>
                 </Button>
-                <Button 
-                  className="w-full bg-primary text-card" 
+                <Button
+                  className="w-full bg-primary text-card"
                   variant="outline"
                   onClick={() => {
                     const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
@@ -418,6 +427,13 @@ export default function PropertyDetailPage() {
             </Card>
           </div>
         </div>
+
+        <EditPropertyModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          property={property}
+          onSave={setProperty}
+        />
       </main>
     </div>
   )

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search } from 'lucide-react'
+import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MakelaarDashboard() {
@@ -53,12 +53,12 @@ export default function MakelaarDashboard() {
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         property.postalCode.toLowerCase().includes(searchTerm.toLowerCase())
-    
+      property.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      property.postalCode.toLowerCase().includes(searchTerm.toLowerCase())
+
     const matchesType = filterType === 'all' || property.type === filterType
     const matchesPhase = filterPhase === 'all' || property.phase === filterPhase
-    
+
     return matchesSearch && matchesType && matchesPhase
   })
 
@@ -70,7 +70,7 @@ export default function MakelaarDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h2 className="text-3xl font-bold mb-2">Dashboard Overzicht</h2>
@@ -147,7 +147,7 @@ export default function MakelaarDashboard() {
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Select value={filterType} onValueChange={setFilterType}>
                   <SelectTrigger>
@@ -161,7 +161,7 @@ export default function MakelaarDashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Select value={filterPhase} onValueChange={setFilterPhase}>
                   <SelectTrigger>
@@ -207,7 +207,7 @@ export default function MakelaarDashboard() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     <div className="flex-1 space-y-3">
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -299,7 +299,7 @@ export default function MakelaarDashboard() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     <div className="flex-1 space-y-3">
                       <div className="flex items-start justify-between gap-4">
                         <div>
@@ -391,7 +391,7 @@ export default function MakelaarDashboard() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      
+
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <div>

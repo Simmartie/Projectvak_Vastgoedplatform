@@ -4,6 +4,7 @@ export interface Property {
   city: string
   postalCode: string
   price: number
+  previousPrice?: number
   type: 'huis' | 'appartement' | 'villa'
   rooms: number
   bedrooms: number
@@ -839,16 +840,44 @@ export const MOCK_PROPERTIES: Property[] = [
   },
 ]
 
+export function getProperties(): Property[] {
+  if (typeof window !== 'undefined') {
+    const stored = localStorage.getItem('vastgoed_properties')
+    if (stored) {
+      return JSON.parse(stored)
+    }
+    localStorage.setItem('vastgoed_properties', JSON.stringify(MOCK_PROPERTIES))
+  }
+  return MOCK_PROPERTIES
+}
+
 export function getPropertyById(id: string): Property | undefined {
-  return MOCK_PROPERTIES.find(p => p.id === id)
+  return getProperties().find(p => p.id === id)
 }
 
 export function getPropertiesBySeller(sellerId: string): Property[] {
-  return MOCK_PROPERTIES.filter(p => p.sellerId === sellerId)
+  return getProperties().filter(p => p.sellerId === sellerId)
 }
 
 export function getAllProperties(): Property[] {
-  return MOCK_PROPERTIES
+  return getProperties()
+}
+
+export function updateProperty(updatedProperty: Property): void {
+  const properties = getProperties()
+  const index = properties.findIndex(p => p.id === updatedProperty.id)
+
+  if (index !== -1) {
+    properties[index] = updatedProperty
+
+    // Also mutate the in-memory array so server-components/initial renders 
+    // inside the same JS context continue to see the updated value
+    MOCK_PROPERTIES[index] = updatedProperty
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vastgoed_properties', JSON.stringify(properties))
+    }
+  }
 }
 
 export function calculateDistance(
@@ -864,9 +893,9 @@ export function calculateDistance(
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2)
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2)
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
   return R * c
 }
