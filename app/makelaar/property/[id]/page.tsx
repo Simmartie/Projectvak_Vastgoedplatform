@@ -20,6 +20,7 @@ export default function PropertyDetailPage() {
   const params = useParams()
   const [property, setProperty] = useState<Property | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -96,9 +97,20 @@ export default function PropertyDetailPage() {
                     <Badge variant="secondary">{property.type}</Badge>
                   </div>
 
-                  <p className="text-muted-foreground leading-relaxed mb-6">
-                    {property.description}
-                  </p>
+                  <div className="mb-6">
+                    <div className={`text-muted-foreground leading-relaxed whitespace-pre-line ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`}>
+                      {property.description}
+                    </div>
+                    {property.description.length > 300 && (
+                      <button
+                        onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                        className="mt-2 text-sm text-primary font-medium hover:underline"
+                      >
+                        {isDescriptionExpanded ? 'Minder weergeven ↑' : 'Meer weergeven ↓'}
+                      </button>
+                    )}
+                  </div>
+
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
                     <div className="text-center">

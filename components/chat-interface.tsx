@@ -24,7 +24,7 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
       // #region agent log
-      fetch('http://127.0.0.1:7851/ingest/75cfb7c7-573a-4083-906b-2611c42d56d5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'ef2530'},body:JSON.stringify({sessionId:'ef2530',runId:'post-fix',hypothesisId:'scroll-behaviour',location:'components/chat-interface.tsx:26',message:'Auto-scroll applied on messages update',data:{scrollHeight:scrollRef.current.scrollHeight,clientHeight:scrollRef.current.clientHeight},timestamp:Date.now()})}).catch(()=>{})
+      fetch('http://127.0.0.1:7851/ingest/75cfb7c7-573a-4083-906b-2611c42d56d5', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'ef2530' }, body: JSON.stringify({ sessionId: 'ef2530', runId: 'post-fix', hypothesisId: 'scroll-behaviour', location: 'components/chat-interface.tsx:26', message: 'Auto-scroll applied on messages update', data: { scrollHeight: scrollRef.current.scrollHeight, clientHeight: scrollRef.current.clientHeight }, timestamp: Date.now() }) }).catch(() => { })
       // #endregion
     }
   }, [messages])
@@ -67,16 +67,16 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
 
           const chunk = decoder.decode(value)
           const lines = chunk.split('\n').filter(line => line.trim())
-          
+
           for (const line of lines) {
             if (line.startsWith('0:')) {
               const text = JSON.parse(line.slice(2))
               assistantMessage += text
-              
+
               setMessages(prev => {
                 const newMessages = [...prev]
                 const lastMsg = newMessages[newMessages.length - 1]
-                
+
                 if (lastMsg && lastMsg.role === 'assistant') {
                   lastMsg.content = assistantMessage
                 } else {
@@ -86,7 +86,7 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
                     content: assistantMessage
                   })
                 }
-                
+
                 return newMessages
               })
             }
@@ -110,7 +110,7 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
         </h3>
         <p className="text-xs text-muted-foreground">Stel vragen over dit pand</p>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         {messages.length === 0 && !error && (
           <div className="text-center text-muted-foreground mt-10 space-y-2">
@@ -119,7 +119,7 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
             <p className="text-xs">Bijvoorbeeld: "Hoe ver is de dichtstbijzijnde bushalte?" of "Zijn er scholen in de buurt?"</p>
           </div>
         )}
-        
+
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -135,12 +135,17 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
                   {m.role === 'user' ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                 </AvatarFallback>
               </Avatar>
-              <div className={`rounded-lg p-3 max-w-[80%] text-sm ${
-                m.role === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
+              <div className={`rounded-lg p-3 max-w-[80%] text-sm ${m.role === 'user'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted'
-              }`}>
-                {m.content}
+                }`}>
+                {m.content.split('\n').map((paragraph, i) =>
+                  paragraph.trim() === '' ? (
+                    <div key={i} className="h-2" />
+                  ) : (
+                    <p key={i}>{paragraph}</p>
+                  )
+                )}
               </div>
             </div>
           ))}

@@ -70,10 +70,10 @@ export async function POST(req: Request) {
     return new Response('Property not found', { status: 404 })
   }
 
-  const apiKey = process.env.GEMINI_API_KEY
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
   if (!apiKey) {
-    console.error('GEMINI_API_KEY is not configured')
+    console.error('GOOGLE_GENERATIVE_AI_API_KEY is not configured')
     return new Response(
       'De AI-assistent is momenteel niet beschikbaar omdat de configuratie ontbreekt.',
       { status: 500 }
