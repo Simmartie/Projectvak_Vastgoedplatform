@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { getCurrentUser, logout } from '@/lib/auth'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import { OptimmoLogo } from '@/components/optimmo-logo'
 
 export function Header() {
   const user = getCurrentUser()
@@ -17,26 +17,13 @@ export function Header() {
     router.push('/')
   }
 
-  const getRoleLabel = () => {
-    switch (user?.role) {
-      case 'makelaar':
-        return 'Makelaar'
-      case 'verkoper':
-        return 'Verkoper'
-      case 'koper':
-        return 'Koper'
-      default:
-        return ''
-    }
-  }
-
   const dashboardUrl = user?.role ? `/${user.role}` : '/'
 
   return (
     <header className="border-b bg-card">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link href={dashboardUrl} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <Image src="/optimmo-logo.svg" alt="Optimmo" width={110} height={55} priority />
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between">
+        <Link href={dashboardUrl} className="flex items-center hover:opacity-80 transition-opacity">
+          <OptimmoLogo width={120} />
         </Link>
 
         <div className="flex items-center gap-4">

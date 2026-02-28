@@ -3,10 +3,10 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import Image from 'next/image'
+import { OptimmoLogo } from '@/components/optimmo-logo'
 import { login } from '@/lib/auth'
 
 export default function LoginPage() {
@@ -19,7 +19,6 @@ export default function LoginPage() {
     const user = login(email)
 
     if (user) {
-      // Route to appropriate dashboard based on role
       switch (user.role) {
         case 'makelaar':
           router.push('/makelaar')
@@ -40,8 +39,8 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-2">
-          <div className="flex justify-center mb-4">
-            <Image src="/optimmo-logo.svg" alt="Optimmo" width={160} height={80} priority />
+          <div className="flex justify-center mb-2">
+            <OptimmoLogo width={280} />
           </div>
           <CardDescription>
             Log in om uw dossiers te bekijken
