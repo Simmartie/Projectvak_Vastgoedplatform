@@ -263,7 +263,7 @@ export default function MakelaarDashboard() {
                             Bekijk Details
                           </Button>
                         </Link>
-                        <Link href={`/makelaar/property/${property.id}/chat`}>
+                        <Link href={`/makelaar/property/${property.id}#chat`}>
                           <Button variant="outline">
                             <MessageSquare className="h-4 w-4" />
                           </Button>
@@ -352,7 +352,7 @@ export default function MakelaarDashboard() {
                             Bekijk Details
                           </Button>
                         </Link>
-                        <Link href={`/makelaar/property/${property.id}/chat`}>
+                        <Link href={`/makelaar/property/${property.id}#chat`}>
                           <Button variant="outline">
                             <MessageSquare className="h-4 w-4" />
                           </Button>
@@ -444,7 +444,7 @@ export default function MakelaarDashboard() {
                               Bekijk Details
                             </Button>
                           </Link>
-                          <Link href={`/makelaar/property/${property.id}/chat`}>
+                          <Link href={`/makelaar/property/${property.id}#chat`}>
                             <Button variant="outline">
                               <MessageSquare className="h-4 w-4" />
                             </Button>

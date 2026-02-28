@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+
+# environment variables (NOOIT committen)
+.env
+.env.local
+.env.*.local
+
+# macOS rommel
+.DS_Store

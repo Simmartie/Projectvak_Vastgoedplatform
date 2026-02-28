@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Send, Bot, User, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -24,6 +23,9 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+      // #region agent log
+      fetch('http://127.0.0.1:7851/ingest/75cfb7c7-573a-4083-906b-2611c42d56d5',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'ef2530'},body:JSON.stringify({sessionId:'ef2530',runId:'post-fix',hypothesisId:'scroll-behaviour',location:'components/chat-interface.tsx:26',message:'Auto-scroll applied on messages update',data:{scrollHeight:scrollRef.current.scrollHeight,clientHeight:scrollRef.current.clientHeight},timestamp:Date.now()})}).catch(()=>{})
+      // #endregion
     }
   }, [messages])
 
@@ -109,7 +111,7 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
         <p className="text-xs text-muted-foreground">Stel vragen over dit pand</p>
       </div>
       
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         {messages.length === 0 && !error && (
           <div className="text-center text-muted-foreground mt-10 space-y-2">
             <Bot className="h-12 w-12 mx-auto opacity-50" />
@@ -153,7 +155,7 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
       <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
         <Input
           value={input}

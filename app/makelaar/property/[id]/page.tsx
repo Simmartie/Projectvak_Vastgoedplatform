@@ -330,7 +330,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card data-chat-card>
+            <Card id="chat" data-chat-card>
               <CardHeader>
                 <CardTitle>Vragen over dit dossier?</CardTitle>
                 <CardDescription>Stel je vragen direct aan onze AI assistent</CardDescription>
