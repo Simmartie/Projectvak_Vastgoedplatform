@@ -79,7 +79,59 @@ export default function MakelaarDashboard() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+        {/* Mobiele versie: 1 overkoepelend vak */}
+        <div className="md:hidden mb-8">
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-y-4 gap-x-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                    <Building2 className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium">Actieve Panden</div>
+                    <div className="text-lg font-bold">
+                      {activeProperties} <span className="text-xs font-normal text-muted-foreground">/{filteredProperties.length}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                    <Eye className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium">Weergaven</div>
+                    <div className="text-lg font-bold">{totalViews}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium">Interesse</div>
+                    <div className="text-lg font-bold">{totalInterested}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground font-medium">Biedingen</div>
+                    <div className="text-lg font-bold">{totalBids}</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Desktop versie: 4 losse vakken */}
+        <div className="hidden md:grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Actieve Panden</CardTitle>
