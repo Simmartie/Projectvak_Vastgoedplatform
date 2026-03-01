@@ -25,8 +25,9 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Appointment, addAppointment, updateAppointment } from '@/lib/agenda'
-import { MOCK_PROPERTIES } from '@/lib/properties'
-import { MOCK_USERS, User } from '@/lib/auth'
+import { fetchProperties } from '@/lib/properties'
+import { fetchProfiles } from '@/lib/data'
+import type { User } from '@/lib/auth'
 
 interface AppointmentModalProps {
     isOpen: boolean
@@ -58,6 +59,15 @@ export function AppointmentModal({
     const [propertyId, setPropertyId] = useState<string>('none')
     const [participantIds, setParticipantIds] = useState<string[]>([])
     const [description, setDescription] = useState('')
+    const [properties, setProperties] = useState<{ id: string; address: string; city: string; sellerId: string }[]>([])
+    const [profiles, setProfiles] = useState<{ id: string; name: string; role: string }[]>([])
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchProperties().then(setProperties).catch(() => [])
+            fetchProfiles().then(ps => setProfiles(ps)).catch(() => [])
+        }
+    }, [isOpen])
 
     // Reset form when modal opens or appointment changes
     useEffect(() => {
@@ -82,19 +92,16 @@ export function AppointmentModal({
         }
     }, [isOpen, appointment, selectedDate, currentUser, prefilledData])
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
         let finalParticipantIds = [...participantIds];
 
         // Auto-link seller if a property is selected
         if (propertyId !== 'none') {
-            const selectedProperty = MOCK_PROPERTIES.find((p) => p.id === propertyId);
-            if (selectedProperty && selectedProperty.sellerId) {
-                // Ensure the seller is included in the final participant list
-                if (!finalParticipantIds.includes(selectedProperty.sellerId)) {
-                    finalParticipantIds.push(selectedProperty.sellerId);
-                }
+            const selectedProperty = properties.find((p) => p.id === propertyId);
+            if (selectedProperty?.sellerId && !finalParticipantIds.includes(selectedProperty.sellerId)) {
+                finalParticipantIds.push(selectedProperty.sellerId);
             }
         }
 
@@ -109,9 +116,9 @@ export function AppointmentModal({
         }
 
         if (isEditing && appointment) {
-            updateAppointment({ ...appointmentData, id: appointment.id })
+            await updateAppointment({ ...appointmentData, id: appointment.id })
         } else {
-            addAppointment(appointmentData)
+            await addAppointment(appointmentData)
         }
 
         onSave()
@@ -192,7 +199,7 @@ export function AppointmentModal({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Geen pand gekoppeld</SelectItem>
-                                        {MOCK_PROPERTIES.map((prop) => (
+                                        {properties.map((prop) => (
                                             <SelectItem key={prop.id} value={prop.id}>
                                                 {prop.address}, {prop.city}
                                             </SelectItem>
@@ -217,7 +224,7 @@ export function AppointmentModal({
                             <div className="grid gap-2">
                                 <Label>Selecteer Kopers (Verkoper wordt automatisch gekoppeld)</Label>
                                 <div className="border rounded-md p-3 max-h-[120px] overflow-y-auto space-y-2">
-                                    {MOCK_USERS.filter(u => u.role === 'koper' || u.role === 'makelaar').map((user) => (
+                                    {profiles.filter(u => u.role === 'koper' || u.role === 'makelaar').map((user) => (
                                         <div key={user.id} className="flex items-center space-x-2">
                                             <input
                                                 type="checkbox"
@@ -245,7 +252,7 @@ export function AppointmentModal({
                             <div className="grid gap-2">
                                 <Label>Deelnemers</Label>
                                 <div className="text-sm text-muted-foreground bg-muted/50 p-2 rounded-md">
-                                    {MOCK_USERS.filter(u => participantIds.includes(u.id)).map(u => u.name).join(', ')}
+                                    {profiles.filter(u => participantIds.includes(u.id)).map(u => u.name).join(', ')}
                                 </div>
                             </div>
                         )}

@@ -9,9 +9,6 @@ export interface Appointment {
   description?: string
 }
 
-// Generate an ID for new appointments
-const generateId = () => Math.random().toString(36).substr(2, 9)
-
 export const MOCK_APPOINTMENTS: Appointment[] = [
   {
     id: 'appt-1',
@@ -45,63 +42,11 @@ export const MOCK_APPOINTMENTS: Appointment[] = [
   }
 ]
 
-export function getAppointmentsForUser(userId: string): Appointment[] {
-  if (typeof window === 'undefined') {
-    return MOCK_APPOINTMENTS.filter(a => Array.isArray(a.participantIds) ? a.participantIds.includes(userId) : (a as any).userId === userId)
-  }
-
-  const stored = localStorage.getItem('appointments')
-  if (stored) {
-    const allAppointments: Appointment[] = JSON.parse(stored)
-    return allAppointments.filter(a => Array.isArray(a.participantIds) ? a.participantIds.includes(userId) : (a as any).userId === userId)
-  }
-
-  // Initialize if empty
-  localStorage.setItem('appointments', JSON.stringify(MOCK_APPOINTMENTS))
-  return MOCK_APPOINTMENTS.filter(a => Array.isArray(a.participantIds) ? a.participantIds.includes(userId) : (a as any).userId === userId)
-}
-
-export function getAllAppointments(): Appointment[] {
-  if (typeof window === 'undefined') return MOCK_APPOINTMENTS
-
-  const stored = localStorage.getItem('appointments')
-  if (stored) {
-    return JSON.parse(stored)
-  }
-
-  localStorage.setItem('appointments', JSON.stringify(MOCK_APPOINTMENTS))
-  return MOCK_APPOINTMENTS
-}
-
-export function addAppointment(appointment: Omit<Appointment, 'id'>): Appointment {
-  const newAppointment = { ...appointment, id: generateId() }
-  const allAppointments = getAllAppointments()
-  allAppointments.push(newAppointment)
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('appointments', JSON.stringify(allAppointments))
-  }
-  return newAppointment
-}
-
-export function updateAppointment(updatedAppointment: Appointment): Appointment {
-  const allAppointments = getAllAppointments()
-  const index = allAppointments.findIndex(a => a.id === updatedAppointment.id)
-
-  if (index !== -1) {
-    allAppointments[index] = updatedAppointment
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('appointments', JSON.stringify(allAppointments))
-    }
-  }
-  return updatedAppointment
-}
-
-export function deleteAppointment(id: string): void {
-  const allAppointments = getAllAppointments()
-  const filtered = allAppointments.filter(a => a.id !== id)
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('appointments', JSON.stringify(filtered))
-  }
-}
+// Re-export Supabase data functions (app uses these - all async now)
+export {
+  fetchAppointmentsForUser as getAppointmentsForUser,
+  fetchAllAppointments as getAllAppointments,
+  addAppointmentInDb as addAppointment,
+  updateAppointmentInDb as updateAppointment,
+  deleteAppointmentInDb as deleteAppointment,
+} from '@/lib/data'

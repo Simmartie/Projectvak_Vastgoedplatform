@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getAllProperties, Property } from '@/lib/properties'
+import { fetchProperties, Property } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -31,7 +31,7 @@ export default function KoperDashboard() {
       router.push('/')
       return
     }
-    setProperties(getAllProperties())
+    fetchProperties().then(setProperties).catch(() => setProperties([]))
   }, [router])
 
   const calculateDistance = (city1: string, city2: string): number => {

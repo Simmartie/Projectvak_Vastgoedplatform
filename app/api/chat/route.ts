@@ -1,4 +1,4 @@
-import { getPropertyById } from '@/lib/properties'
+import { fetchPropertyById } from '@/lib/data'
 
 export const maxDuration = 30
 
@@ -64,7 +64,7 @@ function buildPrompt(question: string, property: any): string {
 export async function POST(req: Request) {
   const { messages, propertyId } = await req.json()
 
-  const property = getPropertyById(propertyId)
+  const property = await fetchPropertyById(propertyId)
 
   if (!property) {
     return new Response('Property not found', { status: 404 })

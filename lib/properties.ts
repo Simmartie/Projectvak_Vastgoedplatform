@@ -25,6 +25,9 @@ export interface Property {
   phase: 'intake' | 'fotografie' | 'online' | 'bezichtigingen' | 'onderhandeling' | 'afgerond'
   // Neighborhood info
   neighborhood: NeighborhoodInfo
+  // Coordinates (from DB or PROPERTY_COORDINATES)
+  lat?: number
+  lng?: number
 }
 
 export interface Visit {
@@ -858,46 +861,13 @@ export const MOCK_PROPERTIES: Property[] = [
   },
 ]
 
-export function getProperties(): Property[] {
-  // Force turbopack recompile
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem('vastgoed_properties_v2')
-    if (stored) {
-      return JSON.parse(stored)
-    }
-    localStorage.setItem('vastgoed_properties_v2', JSON.stringify(MOCK_PROPERTIES))
-  }
-  return MOCK_PROPERTIES
-}
-
-export function getPropertyById(id: string): Property | undefined {
-  return getProperties().find(p => p.id === id)
-}
-
-export function getPropertiesBySeller(sellerId: string): Property[] {
-  return getProperties().filter(p => p.sellerId === sellerId)
-}
-
-export function getAllProperties(): Property[] {
-  return getProperties()
-}
-
-export function updateProperty(updatedProperty: Property): void {
-  const properties = getProperties()
-  const index = properties.findIndex(p => p.id === updatedProperty.id)
-
-  if (index !== -1) {
-    properties[index] = updatedProperty
-
-    // Also mutate the in-memory array so server-components/initial renders 
-    // inside the same JS context continue to see the updated value
-    MOCK_PROPERTIES[index] = updatedProperty
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('vastgoed_properties_v2', JSON.stringify(properties))
-    }
-  }
-}
+// Re-export Supabase data functions (app uses these - all async now)
+export {
+  fetchProperties,
+  fetchPropertyById,
+  fetchPropertiesBySeller,
+  updatePropertyInDb,
+} from '@/lib/data'
 
 export function calculateDistance(
   lat1: number,

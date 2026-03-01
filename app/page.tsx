@@ -14,24 +14,31 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const router = useRouter()
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    const user = login(email)
+  const [isLoading, setIsLoading] = useState(false)
 
-    if (user) {
-      switch (user.role) {
-        case 'makelaar':
-          router.push('/makelaar')
-          break
-        case 'verkoper':
-          router.push('/verkoper')
-          break
-        case 'koper':
-          router.push('/koper')
-          break
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError('')
+    try {
+      const user = await login(email)
+      if (user) {
+        switch (user.role) {
+          case 'makelaar':
+            router.push('/makelaar')
+            break
+          case 'verkoper':
+            router.push('/verkoper')
+            break
+          case 'koper':
+            router.push('/koper')
+            break
+        }
+      } else {
+        setError('Ongeldig e-mailadres. Gebruik een van de demo accounts.')
       }
-    } else {
-      setError('Ongeldig e-mailadres. Gebruik een van de demo accounts.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -64,8 +71,8 @@ export default function LoginPage() {
               <p className="text-sm text-destructive">{error}</p>
             )}
 
-            <Button type="submit" className="w-full">
-              Inloggen
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Bezig...' : 'Inloggen'}
             </Button>
           </form>
 

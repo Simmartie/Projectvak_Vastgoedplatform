@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getPropertiesBySeller, Property } from '@/lib/properties'
+import { fetchPropertiesBySeller, Property } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -22,11 +22,9 @@ export default function VerkoperDashboard() {
       router.push('/')
       return
     }
-
-    const properties = getPropertiesBySeller(user.id)
-    if (properties.length > 0) {
-      setProperty(properties[0])
-    }
+    fetchPropertiesBySeller(user.id)
+      .then(ps => { if (ps.length > 0) setProperty(ps[0]) })
+      .catch(() => {})
   }, [router])
 
   if (!property) {

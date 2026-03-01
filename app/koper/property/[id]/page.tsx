@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getPropertyById, Property } from '@/lib/properties'
+import { fetchPropertyById, Property } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -25,11 +25,9 @@ export default function KoperPropertyDetailPage() {
       router.push('/')
       return
     }
-
-    const prop = getPropertyById(params.id as string)
-    if (prop) {
-      setProperty(prop)
-    }
+    fetchPropertyById(params.id as string).then(prop => {
+      if (prop) setProperty(prop)
+    })
   }, [router, params.id])
 
   if (!property) {

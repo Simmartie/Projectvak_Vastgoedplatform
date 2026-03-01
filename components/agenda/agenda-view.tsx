@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Appointment, getAppointmentsForUser, deleteAppointment } from '@/lib/agenda'
-import { getPropertyById } from '@/lib/properties'
+import { fetchPropertyById, type Property } from '@/lib/properties'
 import { AppointmentModal } from './appointment-modal'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -30,6 +30,7 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
     const [selectedDateForNew, setSelectedDateForNew] = useState<Date>(new Date())
     const [prefilledData, setPrefilledData] = useState<Partial<Appointment> | undefined>()
     const [daysToShow, setDaysToShow] = useState<number>(7)
+    const [propertyCache, setPropertyCache] = useState<Record<string, Property | null>>({})
     const searchParams = useSearchParams()
 
     const user = getCurrentUser()
@@ -54,8 +55,17 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const loadAppointments = () => {
-        setAppointments(getAppointmentsForUser(activeUserId))
+    const loadAppointments = async () => {
+        const apps = await getAppointmentsForUser(activeUserId)
+        setAppointments(apps)
+        // Pre-fetch properties for appointments
+        const ids = [...new Set(apps.map(a => a.propertyId).filter(Boolean))] as string[]
+        const cache: Record<string, Property | null> = {}
+        await Promise.all(ids.map(async id => {
+            const p = await fetchPropertyById(id)
+            cache[id] = p ?? null
+        }))
+        setPropertyCache(prev => ({ ...prev, ...cache }))
     }
 
     useEffect(() => {
@@ -80,10 +90,10 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
         setIsModalOpen(true)
     }
 
-    const handleDelete = (id: string, e: React.MouseEvent) => {
+    const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation()
         if (confirm('Weet u zeker dat u deze afspraak wilt verwijderen?')) {
-            deleteAppointment(id)
+            await deleteAppointment(id)
             loadAppointments()
         }
     }
@@ -207,7 +217,7 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
                                             onClick={() => handleAddNew(day)}
                                         >
                                             {dayAppointments.map(appointment => {
-                                                const property = appointment.propertyId ? getPropertyById(appointment.propertyId) : null
+                                                const property = appointment.propertyId ? (propertyCache[appointment.propertyId] ?? null) : null
 
                                                 const [startH, startM] = appointment.startTime.split(':').map(Number)
                                                 const [endH, endM] = appointment.endTime.split(':').map(Number)

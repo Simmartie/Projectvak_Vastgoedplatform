@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { getCurrentUser, MOCK_USERS } from '@/lib/auth'
-import { getPropertyById, Property } from '@/lib/properties'
+import { getCurrentUser } from '@/lib/auth'
+import { fetchPropertyById, Property } from '@/lib/properties'
+import { fetchProfileById } from '@/lib/data'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +20,7 @@ export default function PropertyDetailPage() {
   const router = useRouter()
   const params = useParams()
   const [property, setProperty] = useState<Property | null>(null)
+  const [seller, setSeller] = useState<{ id: string; name: string; email: string } | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
@@ -28,12 +30,18 @@ export default function PropertyDetailPage() {
       router.push('/')
       return
     }
-
-    const prop = getPropertyById(params.id as string)
-    if (prop) {
-      setProperty(prop)
-    }
+    fetchPropertyById(params.id as string).then(prop => {
+      if (prop) setProperty(prop)
+    })
   }, [router, params.id])
+
+  useEffect(() => {
+    if (property?.sellerId) {
+      fetchProfileById(property.sellerId).then(p => {
+        if (p) setSeller(p)
+      })
+    }
+  }, [property?.sellerId])
 
   if (!property) {
     return <div>Loading...</div>
@@ -42,8 +50,6 @@ export default function PropertyDetailPage() {
   const avgBidAmount = property.bids.length > 0
     ? property.bids.reduce((sum, bid) => sum + bid.amount, 0) / property.bids.length
     : 0
-
-  const seller = MOCK_USERS.find(u => u.id === property.sellerId)
 
   return (
     <div className="min-h-screen bg-background">

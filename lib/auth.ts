@@ -1,5 +1,7 @@
 'use client'
 
+import { fetchProfileByEmail } from '@/lib/data'
+
 export type UserRole = 'makelaar' | 'verkoper' | 'koper'
 
 export interface User {
@@ -10,15 +12,9 @@ export interface User {
   propertyId?: string // For verkopers, links them to their property
 }
 
-// Mock users for demo
+// Mock users - kept for seed script and demo accounts display on login page
 export const MOCK_USERS: User[] = [
-  {
-    id: '1',
-    name: 'Jan Janssen',
-    email: 'jan@makelaardij.nl',
-    role: 'makelaar',
-  },
-  // Verkopers (1 for each property)
+  { id: '1', name: 'Jan Janssen', email: 'jan@makelaardij.nl', role: 'makelaar' },
   { id: 'v1', name: 'Maria Peters', email: 'maria@email.nl', role: 'verkoper', propertyId: 'prop-1' },
   { id: 'v2', name: 'Klaas Dijkstra', email: 'v2@email.nl', role: 'verkoper', propertyId: 'prop-2' },
   { id: 'v3', name: 'Sanne Visser', email: 'v3@email.nl', role: 'verkoper', propertyId: 'prop-3' },
@@ -29,7 +25,6 @@ export const MOCK_USERS: User[] = [
   { id: 'v8', name: 'Daan Kerstens', email: 'v8@email.nl', role: 'verkoper', propertyId: 'prop-8' },
   { id: 'v9', name: 'Milou van Dijk', email: 'v9@email.nl', role: 'verkoper', propertyId: 'prop-9' },
   { id: 'v10', name: 'Sem Jansen', email: 'v10@email.nl', role: 'verkoper', propertyId: 'prop-10' },
-  // Kopers
   { id: '3', name: 'Pieter de Vries', email: 'pieter@email.nl', role: 'koper' },
   { id: 'k2', name: 'Sarah de Jong', email: 'sarah@email.nl', role: 'koper' },
   { id: 'k3', name: 'Jan Peeters', email: 'jan.peeters@email.nl', role: 'koper' },
@@ -37,11 +32,10 @@ export const MOCK_USERS: User[] = [
   { id: 'k5', name: 'Tom Hendriks', email: 'tom@email.nl', role: 'koper' },
 ]
 
-// Simple auth context using localStorage
 let currentUser: User | null = null
 
-export function login(email: string): User | null {
-  const user = MOCK_USERS.find(u => u.email === email)
+export async function login(email: string): Promise<User | null> {
+  const user = await fetchProfileByEmail(email)
   if (user) {
     currentUser = user
     if (typeof window !== 'undefined') {

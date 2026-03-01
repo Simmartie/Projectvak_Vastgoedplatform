@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getAllProperties, Property, PROPERTY_COORDINATES, CITY_COORDINATES, calculateDistance } from '@/lib/properties'
+import { fetchProperties, Property, PROPERTY_COORDINATES, CITY_COORDINATES, calculateDistance } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,14 +26,18 @@ export default function KoperMapView() {
       router.push('/')
       return
     }
-    setProperties(getAllProperties().filter(p => p.status === 'te-koop'))
+    fetchProperties()
+      .then(ps => setProperties(ps.filter(p => p.status === 'te-koop')))
+      .catch(() => setProperties([]))
   }, [router])
 
   useEffect(() => {
     // Calculate distances and sort
     const propertiesWithDistance = properties
       .map(property => {
-        const coords = PROPERTY_COORDINATES[property.id]
+        const coords = property.lat != null && property.lng != null
+          ? { lat: property.lat, lng: property.lng }
+          : PROPERTY_COORDINATES[property.id]
         if (!coords) return null
         
         const distance = calculateDistance(

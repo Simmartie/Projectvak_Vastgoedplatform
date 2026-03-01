@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Property, updateProperty } from '@/lib/properties'
+import { Property, updatePropertyInDb } from '@/lib/properties'
 import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2 } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -109,7 +109,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
         setFormData({ ...formData, images: newImages })
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         const cleanedImages = formData.images.filter(url => url.trim() !== '')
         const finalData = { ...formData, images: cleanedImages }
@@ -119,7 +119,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
             finalData.previousPrice = property.price
         }
 
-        updateProperty(finalData)
+        await updatePropertyInDb(finalData)
         onSave(finalData)
         onClose()
     }
