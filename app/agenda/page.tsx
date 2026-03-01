@@ -19,7 +19,7 @@ export default function AgendaPage() {
     return (
         <div className="min-h-screen bg-background">
             <Header />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-0 pt-0 pb-8 sm:py-8 sm:px-4">
                 <Suspense fallback={<div className="flex h-full items-center justify-center p-8">Loading kalender...</div>}>
                     <AgendaView />
                 </Suspense>

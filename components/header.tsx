@@ -1,5 +1,7 @@
 'use client'
 
+import React, { useState, useEffect } from 'react'
+
 import { LogOut, Calendar, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, logout } from '@/lib/auth'
@@ -12,12 +14,18 @@ export function Header() {
   const router = useRouter()
   const pathname = usePathname()
 
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   const handleLogout = () => {
     logout()
     router.push('/')
   }
 
-  const dashboardUrl = user?.role ? `/${user.role}` : '/'
+  const dashboardUrl = isMounted && user?.role ? `/${user.role}` : '/'
 
   return (
     <header className="border-b bg-card">
@@ -29,16 +37,16 @@ export function Header() {
         <div className="flex items-center gap-4">
           {pathname === '/agenda' ? (
             <Link href={dashboardUrl}>
-              <Button variant="ghost" size="sm" className="hidden sm:flex">
+              <Button variant="ghost" size="sm" className="flex">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Terug naar Dashboard
+                <span className="hidden sm:inline">Terug naar Dashboard</span>
               </Button>
             </Link>
           ) : (
             <Link href="/agenda">
-              <Button variant="ghost" size="sm" className="hidden sm:flex">
+              <Button variant="ghost" size="sm" className="flex">
                 <Calendar className="h-4 w-4 mr-2" />
-                Agenda
+                <span className="hidden sm:inline">Agenda</span>
               </Button>
             </Link>
           )}
