@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getAllProperties, Property, PROPERTY_COORDINATES, CITY_COORDINATES, calculateDistance } from '@/lib/properties'
+import { getProperties, Property, PROPERTY_COORDINATES, CITY_COORDINATES, calculateDistance } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -26,7 +26,11 @@ export default function KoperMapView() {
       router.push('/')
       return
     }
-    setProperties(getAllProperties().filter(p => p.status === 'te-koop'))
+    const loadProperties = async () => {
+      const allProps = await getProperties()
+      setProperties(allProps.filter(p => p.status === 'te-koop'))
+    }
+    loadProperties()
   }, [router])
 
   useEffect(() => {
@@ -35,26 +39,26 @@ export default function KoperMapView() {
       .map(property => {
         const coords = PROPERTY_COORDINATES[property.id]
         if (!coords) return null
-        
+
         const distance = calculateDistance(
           centerCoords.lat,
           centerCoords.lng,
           coords.lat,
           coords.lng
         )
-        
+
         return { ...property, distance }
       })
       .filter((p): p is Property & { distance: number } => p !== null)
       .sort((a, b) => a.distance - b.distance)
-    
+
     setSortedProperties(propertiesWithDistance)
   }, [properties, centerCoords])
 
   const handleSearch = () => {
     const searchLower = location.toLowerCase().trim()
     const coords = CITY_COORDINATES[searchLower]
-    
+
     if (coords) {
       setCenterCoords(coords)
     } else {
@@ -72,7 +76,7 @@ export default function KoperMapView() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
           <h2 className="text-3xl font-bold mb-2">Panden bij mij in de buurt</h2>
@@ -127,7 +131,7 @@ export default function KoperMapView() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2 mb-1">
                         <h3 className="font-semibold text-sm truncate">{property.address}</h3>
@@ -135,7 +139,7 @@ export default function KoperMapView() {
                           {property.distance.toFixed(1)} km
                         </Badge>
                       </div>
-                      
+
                       <div className="flex items-center text-xs text-muted-foreground mb-2">
                         <MapPin className="h-3 w-3 mr-1" />
                         {property.city}

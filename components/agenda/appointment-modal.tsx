@@ -25,7 +25,7 @@ import {
     SelectValue,
 } from '@/components/ui/select'
 import { Appointment, addAppointment, updateAppointment } from '@/lib/agenda'
-import { MOCK_PROPERTIES } from '@/lib/properties'
+import { getProperties, Property } from '@/lib/properties'
 import { MOCK_USERS, User } from '@/lib/auth'
 
 interface AppointmentModalProps {
@@ -58,6 +58,7 @@ export function AppointmentModal({
     const [propertyId, setPropertyId] = useState<string>('none')
     const [participantIds, setParticipantIds] = useState<string[]>([])
     const [description, setDescription] = useState('')
+    const [properties, setProperties] = useState<Property[]>([])
 
     // Reset form when modal opens or appointment changes
     useEffect(() => {
@@ -82,6 +83,12 @@ export function AppointmentModal({
         }
     }, [isOpen, appointment, selectedDate, currentUser, prefilledData])
 
+    useEffect(() => {
+        if (isOpen && isMakelaar && properties.length === 0) {
+            getProperties().then(setProperties)
+        }
+    }, [isOpen, isMakelaar, properties.length])
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -89,7 +96,7 @@ export function AppointmentModal({
 
         // Auto-link seller if a property is selected
         if (propertyId !== 'none') {
-            const selectedProperty = MOCK_PROPERTIES.find((p) => p.id === propertyId);
+            const selectedProperty = properties.find((p) => p.id === propertyId);
             if (selectedProperty && selectedProperty.sellerId) {
                 // Ensure the seller is included in the final participant list
                 if (!finalParticipantIds.includes(selectedProperty.sellerId)) {
@@ -192,7 +199,7 @@ export function AppointmentModal({
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="none">Geen pand gekoppeld</SelectItem>
-                                        {MOCK_PROPERTIES.map((prop) => (
+                                        {properties.map((prop) => (
                                             <SelectItem key={prop.id} value={prop.id}>
                                                 {prop.address}, {prop.city}
                                             </SelectItem>

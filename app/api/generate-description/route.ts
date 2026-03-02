@@ -9,10 +9,11 @@ export async function POST(req: Request) {
             return new Response('Missing property data', { status: 400 })
         }
 
-        const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+        let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
+        if (apiKey) apiKey = apiKey.replace(/^["']|["']$/g, '')
 
         if (!apiKey) {
-            console.error('GOOGLE_GENERATIVE_AI_API_KEY is not configured')
+            console.error('GEMINI_API_KEY is not configured')
             return new Response('AI service not configured', { status: 500 })
         }
 

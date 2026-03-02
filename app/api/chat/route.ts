@@ -47,8 +47,10 @@ function buildPrompt(question: string, property: any): string {
 
   const systemInstruction =
     'Je bent een Nederlandstalige vastgoedassistent. ' +
-    'Beantwoord ALLEEN de specifieke vraag van de gebruiker. Geef geen extra informatie over prijs, grootte, kamers, buurt of andere onderwerpen tenzij de gebruiker daar expliciet naar vraagt. ' +
-    'Bijvoorbeeld: bij "Wat is het energielabel?" antwoord je alleen met het label (bijv. "C"), niet met prijs of andere details. ' +
+    'Beantwoord ALLEEN de specifieke vraag van de gebruiker. Geef geen extra informatie tenzij de gebruiker daar expliciet naar vraagt. ' +
+    'BELANGRIJK: "EPC label", "epc", "energieprestatiecertificaat", "energieklasse", "energie label" en "energielabel" betekenen allemaal hetzelfde: het veld "energielabel" in de pandgegevens. ' +
+    'Gebruik altijd de pandgegevens om de vraag te beantwoorden. ' +
+    'Voorbeeld: bij "Wat is het EPC label?", "Welk epc label heeft dit pand?" of "Wat is het energielabel?" antwoord je ALLEEN met het label (bijv. "Het energielabel is C."). ' +
     'Je verzint geen informatie die niet in de pandgegevens staat. Antwoorden zijn kort: één zin of een korte opsomming als de vraag om meerdere dingen vraagt.'
 
   const promptText =
@@ -64,16 +66,17 @@ function buildPrompt(question: string, property: any): string {
 export async function POST(req: Request) {
   const { messages, propertyId } = await req.json()
 
-  const property = getPropertyById(propertyId)
+  const property = await getPropertyById(propertyId)
 
   if (!property) {
     return new Response('Property not found', { status: 404 })
   }
 
-  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  if (apiKey) apiKey = apiKey.replace(/^["']|["']$/g, '')
 
   if (!apiKey) {
-    console.error('GOOGLE_GENERATIVE_AI_API_KEY is not configured')
+    console.error('GEMINI_API_KEY is not configured')
     return new Response(
       'De AI-assistent is momenteel niet beschikbaar omdat de configuratie ontbreekt.',
       { status: 500 }

@@ -29,10 +29,13 @@ export default function PropertyDetailPage() {
       return
     }
 
-    const prop = getPropertyById(params.id as string)
-    if (prop) {
-      setProperty(prop)
+    const loadProperty = async () => {
+      const prop = await getPropertyById(params.id as string)
+      if (prop) {
+        setProperty(prop)
+      }
     }
+    loadProperty()
   }, [router, params.id])
 
   if (!property) {
@@ -281,7 +284,7 @@ export default function PropertyDetailPage() {
                     <h4 className="font-medium">Scholen</h4>
                   </div>
                   <div className="space-y-2">
-                    {property.neighborhood.schools.map((school, index) => (
+                    {property.neighborhood.schools.map((school: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium text-sm">{school.name}</p>
@@ -304,7 +307,7 @@ export default function PropertyDetailPage() {
                     <h4 className="font-medium">Sportclubs</h4>
                   </div>
                   <div className="space-y-2">
-                    {property.neighborhood.sports.map((sport, index) => (
+                    {property.neighborhood.sports.map((sport: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium text-sm">{sport.name}</p>
@@ -322,7 +325,7 @@ export default function PropertyDetailPage() {
                     <h4 className="font-medium">Openbaar Vervoer</h4>
                   </div>
                   <div className="space-y-2">
-                    {property.neighborhood.transport.map((transport, index) => (
+                    {property.neighborhood.transport.map((transport: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div>
                           <p className="font-medium text-sm">{transport.type.toUpperCase()} {transport.line}</p>
@@ -340,7 +343,7 @@ export default function PropertyDetailPage() {
                     <h4 className="font-medium">Evenementen</h4>
                   </div>
                   <div className="space-y-2">
-                    {property.neighborhood.events.map((event, index) => (
+                    {property.neighborhood.events.map((event: any, index: number) => (
                       <div key={index} className="p-3 bg-muted rounded-lg">
                         <p className="font-medium text-sm">{event.name}</p>
                         <p className="text-xs text-muted-foreground">{event.frequency}</p>

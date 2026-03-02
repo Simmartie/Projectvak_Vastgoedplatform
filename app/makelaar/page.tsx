@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
-import { getAllProperties, Property } from '@/lib/properties'
+import { getProperties, Property } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -27,7 +27,11 @@ export default function MakelaarDashboard() {
       router.push('/')
       return
     }
-    setProperties(getAllProperties())
+    const loadProperties = async () => {
+      const data = await getProperties()
+      setProperties(data)
+    }
+    loadProperties()
   }, [router])
 
   const getStatusBadge = (status: string) => {

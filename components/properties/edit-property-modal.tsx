@@ -21,6 +21,7 @@ interface EditPropertyModalProps {
 export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPropertyModalProps) {
     const [formData, setFormData] = useState<Property>(property)
     const [isGenerating, setIsGenerating] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
 
     useEffect(() => {
         if (isOpen) {
@@ -109,7 +110,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
         setFormData({ ...formData, images: newImages })
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         const cleanedImages = formData.images.filter(url => url.trim() !== '')
         const finalData = { ...formData, images: cleanedImages }
@@ -119,9 +120,17 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
             finalData.previousPrice = property.price
         }
 
-        updateProperty(finalData)
-        onSave(finalData)
-        onClose()
+        try {
+            setIsSaving(true)
+            await updateProperty(finalData)
+            onSave(finalData)
+            onClose()
+        } catch (error) {
+            console.error('Error saving property:', error)
+            alert('Er is een fout opgetreden bij het opslaan van het pand.')
+        } finally {
+            setIsSaving(false)
+        }
     }
 
     if (!isOpen) return null
@@ -347,8 +356,8 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                         <Button type="button" variant="outline" onClick={onClose}>
                             Annuleren
                         </Button>
-                        <Button type="submit" form="edit-property-form">
-                            Wijzigingen Opslaan
+                        <Button type="submit" form="edit-property-form" disabled={isSaving}>
+                            {isSaving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Opslaan...</> : 'Wijzigingen Opslaan'}
                         </Button>
                     </DialogFooter>
                 </form>
