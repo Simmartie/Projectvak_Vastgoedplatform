@@ -50,7 +50,7 @@ function mapDatabaseProperty(row: any): Property {
     description: row.description,
     features: row.features || [],
     images: row.images || [],
-    sellerId: row.seller_id,
+    sellerId: row.users?.mock_id || row.seller_id,
     views: row.views || 0,
     visits: [], // these need to be fetched separately if needed in full depth
     bids: [],   // these need to be fetched separately
@@ -64,7 +64,12 @@ export const getProperties = async (): Promise<Property[]> => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('properties')
-    .select('*')
+    .select(`
+      *,
+      visits ( * ),
+      bids ( * ),
+      users:seller_id ( mock_id )
+    `)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -72,28 +77,38 @@ export const getProperties = async (): Promise<Property[]> => {
     return []
   }
 
-  return data.map(mapDatabaseProperty)
+  return data.map((row: any) => {
+    const mapped = mapDatabaseProperty(row)
+    mapped.visits = row.visits || []
+    mapped.bids = row.bids || []
+    return mapped
+  })
 }
 
 export const getPropertyById = async (id: string): Promise<Property | undefined> => {
+  if (!id || id === 'null' || id === 'undefined') {
+    return undefined
+  }
+
   const supabase = createClient()
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
 
-  const query = supabase
+  const { data: propData, error } = await supabase
     .from('properties')
     .select(`
       *,
       visits ( * ),
-      bids ( * )
+      bids ( * ),
+      users:seller_id ( mock_id )
     `)
-
-  const { data: propData, error } = await (isUuid
-    ? query.eq('id', id)
-    : query.eq('mock_id', id)).single()
+    .or(isUuid ? `id.eq.${id},mock_id.eq.${id}` : `mock_id.eq.${id}`)
+    .single()
 
   if (error || !propData) {
-    console.error('Error fetching property by ID:', error)
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "No rows found"
+      console.error('Error fetching property by ID:', error)
+    }
     return undefined
   }
 
@@ -108,10 +123,29 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
 
 export const getPropertiesBySeller = async (sellerId: string): Promise<Property[]> => {
   const supabase = createClient()
+
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sellerId)
+
+  let actualSellerId = sellerId
+
+  if (!isUuid) {
+    const { data: userData } = await supabase.from('users').select('id').eq('mock_id', sellerId).single()
+    if (userData) {
+      actualSellerId = userData.id
+    } else {
+      return []
+    }
+  }
+
   const { data, error } = await supabase
     .from('properties')
-    .select('*')
-    .eq('seller_id', sellerId)
+    .select(`
+      *,
+      visits ( * ),
+      bids ( * ),
+      users:seller_id ( mock_id )
+    `)
+    .eq('seller_id', actualSellerId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -119,7 +153,12 @@ export const getPropertiesBySeller = async (sellerId: string): Promise<Property[
     return []
   }
 
-  return data.map(mapDatabaseProperty)
+  return data.map((row: any) => {
+    const mapped = mapDatabaseProperty(row)
+    mapped.visits = row.visits || []
+    mapped.bids = row.bids || []
+    return mapped
+  })
 }
 
 export async function updateProperty(updatedProperty: Partial<Property> & { id: string }): Promise<void> {
