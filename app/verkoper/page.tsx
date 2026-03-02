@@ -23,10 +23,13 @@ export default function VerkoperDashboard() {
       return
     }
 
-    const properties = getPropertiesBySeller(user.id)
-    if (properties.length > 0) {
-      setProperty(properties[0])
+    const loadProperties = async () => {
+      const properties = await getPropertiesBySeller(user.id)
+      if (properties.length > 0) {
+        setProperty(properties[0])
+      }
     }
+    loadProperties()
   }, [router])
 
   if (!property) {

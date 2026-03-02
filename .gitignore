@@ -11,3 +11,5 @@ node_modules/
 
 # macOS rommel
 .DS_Store
+.vercel
+.env*.local

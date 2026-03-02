@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Appointment, getAppointmentsForUser, deleteAppointment } from '@/lib/agenda'
-import { getPropertyById } from '@/lib/properties'
+import { getPropertyById, Property } from '@/lib/properties'
 import { AppointmentModal } from './appointment-modal'
 import { getCurrentUser } from '@/lib/auth'
 
@@ -30,6 +30,7 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
     const [selectedDateForNew, setSelectedDateForNew] = useState<Date>(new Date())
     const [prefilledData, setPrefilledData] = useState<Partial<Appointment> | undefined>()
     const [daysToShow, setDaysToShow] = useState<number>(7)
+    const [propertiesMap, setPropertiesMap] = useState<Record<string, Property>>({})
     const searchParams = useSearchParams()
 
     const user = getCurrentUser()
@@ -55,7 +56,21 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
     }, [])
 
     const loadAppointments = () => {
-        setAppointments(getAppointmentsForUser(activeUserId))
+        const apps = getAppointmentsForUser(activeUserId)
+        setAppointments(apps)
+
+        // Preload properties for the appointments
+        const loadProps = async () => {
+            const map: Record<string, Property> = {}
+            for (const app of apps) {
+                if (app.propertyId && !map[app.propertyId]) {
+                    const p = await getPropertyById(app.propertyId)
+                    if (p) map[app.propertyId] = p
+                }
+            }
+            setPropertiesMap(prev => ({ ...prev, ...map }))
+        }
+        loadProps()
     }
 
     useEffect(() => {
@@ -207,7 +222,7 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
                                             onClick={() => handleAddNew(day)}
                                         >
                                             {dayAppointments.map(appointment => {
-                                                const property = appointment.propertyId ? getPropertyById(appointment.propertyId) : null
+                                                const property = appointment.propertyId ? propertiesMap[appointment.propertyId] : null
 
                                                 const [startH, startM] = appointment.startTime.split(':').map(Number)
                                                 const [endH, endM] = appointment.endTime.split(':').map(Number)
