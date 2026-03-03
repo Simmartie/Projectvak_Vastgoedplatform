@@ -52,7 +52,7 @@ export async function POST(req: Request) {
         if (!res.ok) {
             const errorBody = await res.text()
             console.error('Gemini API error status:', res.status, 'body:', errorBody)
-            return new Response(`Gemini API error: ${res.status}`, { status: 502 })
+            return new Response(JSON.stringify({ error: `Gemini API error: ${res.status}`, details: errorBody }), { status: 502, headers: { 'Content-Type': 'application/json' } })
         }
 
         const json = await res.json() as any

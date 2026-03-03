@@ -188,7 +188,7 @@ export default function KoperPropertyDetailPage() {
                   </TabsList>
 
                   <TabsContent value="schools" className="space-y-3">
-                    {property.neighborhood.schools.map((school: any, index: number) => (
+                    {(property.neighborhood?.schools || []).map((school: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div className="flex items-start gap-3">
                           <div className="bg-background p-2 rounded-lg">
@@ -210,7 +210,7 @@ export default function KoperPropertyDetailPage() {
                   </TabsContent>
 
                   <TabsContent value="sports" className="space-y-3">
-                    {property.neighborhood.sports.map((sport: any, index: number) => (
+                    {(property.neighborhood?.sports || []).map((sport: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div className="flex items-start gap-3">
                           <div className="bg-background p-2 rounded-lg">
@@ -227,7 +227,7 @@ export default function KoperPropertyDetailPage() {
                   </TabsContent>
 
                   <TabsContent value="transport" className="space-y-3">
-                    {property.neighborhood.transport.map((transport: any, index: number) => (
+                    {(property.neighborhood?.transport || []).map((transport: any, index: number) => (
                       <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                         <div className="flex items-start gap-3">
                           <div className="bg-background p-2 rounded-lg">
@@ -244,7 +244,7 @@ export default function KoperPropertyDetailPage() {
                   </TabsContent>
 
                   <TabsContent value="events" className="space-y-3">
-                    {property.neighborhood.events.map((event: any, index: number) => (
+                    {(property.neighborhood?.events || []).map((event: any, index: number) => (
                       <div key={index} className="p-3 bg-muted rounded-lg">
                         <div className="flex items-start gap-3">
                           <div className="bg-background p-2 rounded-lg">
