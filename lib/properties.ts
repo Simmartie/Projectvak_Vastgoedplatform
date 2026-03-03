@@ -231,6 +231,11 @@ export const PROPERTY_COORDINATES: Record<string, { lat: number; lng: number }> 
   'prop-8': { lat: 50.9658, lng: 5.5009 }, // Genk
   'prop-9': { lat: 50.8798, lng: 4.7005 }, // Leuven
   'prop-10': { lat: 50.7803, lng: 5.4644 }, // Tongeren
+  'prop-11': { lat: 50.8244, lng: 4.3642 }, // Brussel
+  'prop-12': { lat: 51.0538, lng: 3.7223 }, // Gent
+  'prop-13': { lat: 51.2065, lng: 3.2244 }, // Brugge
+  'prop-14': { lat: 52.0913, lng: 5.1209 }, // Utrecht
+  'prop-15': { lat: 51.9069, lng: 4.4754 }, // Rotterdam
 }
 
 // Mock coordinates for Belgian cities

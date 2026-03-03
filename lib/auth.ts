@@ -29,12 +29,22 @@ export const MOCK_USERS: User[] = [
   { id: 'v8', name: 'Daan Kerstens', email: 'v8@email.nl', role: 'verkoper', propertyId: 'prop-8' },
   { id: 'v9', name: 'Milou van Dijk', email: 'v9@email.nl', role: 'verkoper', propertyId: 'prop-9' },
   { id: 'v10', name: 'Sem Jansen', email: 'v10@email.nl', role: 'verkoper', propertyId: 'prop-10' },
+  { id: 'v11', name: 'Julia de Rijk', email: 'v11@email.nl', role: 'verkoper', propertyId: 'prop-11' },
+  { id: 'v12', name: 'Bram Verhoeven', email: 'v12@email.nl', role: 'verkoper', propertyId: 'prop-12' },
+  { id: 'v13', name: 'Lisa Brouwer', email: 'v13@email.nl', role: 'verkoper', propertyId: 'prop-13' },
+  { id: 'v14', name: 'Tim van der Berg', email: 'v14@email.nl', role: 'verkoper', propertyId: 'prop-14' },
+  { id: 'v15', name: 'Eva Koster', email: 'v15@email.nl', role: 'verkoper', propertyId: 'prop-15' },
   // Kopers
   { id: '3', name: 'Pieter de Vries', email: 'pieter@email.nl', role: 'koper' },
   { id: 'k2', name: 'Sarah de Jong', email: 'sarah@email.nl', role: 'koper' },
   { id: 'k3', name: 'Jan Peeters', email: 'jan.peeters@email.nl', role: 'koper' },
   { id: 'k4', name: 'Lotte Meijer', email: 'lotte@email.nl', role: 'koper' },
   { id: 'k5', name: 'Tom Hendriks', email: 'tom@email.nl', role: 'koper' },
+  { id: 'k6', name: 'Ruben Vos', email: 'ruben@email.nl', role: 'koper' },
+  { id: 'k7', name: 'Noa de Witte', email: 'noa@email.nl', role: 'koper' },
+  { id: 'k8', name: 'Lucas van Leeuwen', email: 'lucas@email.nl', role: 'koper' },
+  { id: 'k9', name: 'Lina de Ruiter', email: 'lina@email.nl', role: 'koper' },
+  { id: 'k10', name: 'Lars Maes', email: 'lars@email.nl', role: 'koper' },
 ]
 
 // Simple auth context using localStorage
