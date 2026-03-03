@@ -46,14 +46,26 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
     const handleGenerateDescription = async () => {
         try {
             setIsGenerating(true)
+
+            // Create a copy of the property data but without the images array since base64 data can be huge
+            // and cause 413 Payload Too Large or 502 errors when calling the API route.
+            const { images, ...propertyDataForAi } = formData;
+
             const response = await fetch('/api/generate-description', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ property: formData }),
+                body: JSON.stringify({ property: propertyDataForAi }),
             })
 
             if (!response.ok) {
-                throw new Error('Failed to generate description')
+                let errorMsg = 'Failed to generate description';
+                try {
+                    const errorData = await response.json();
+                    if (errorData.error) errorMsg = errorData.error;
+                } catch {
+                    // Ignore JSON parse errors for fallback
+                }
+                throw new Error(errorMsg)
             }
 
             const data = await response.json()

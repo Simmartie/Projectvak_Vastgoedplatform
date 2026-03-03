@@ -202,7 +202,7 @@ export default function PropertyDetailPage() {
                         <div>
                           <p className="font-medium">{visit.buyerName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(visit.date).toLocaleDateString('nl-NL')}
+                            {visit.date ? new Date(visit.date).toLocaleDateString('nl-NL') : 'Onbekende datum'}
                           </p>
                         </div>
                         {visit.rating && (
@@ -245,7 +245,7 @@ export default function PropertyDetailPage() {
                         <div>
                           <p className="font-medium">{bid.buyerName}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(bid.date).toLocaleDateString('nl-NL')}
+                            {bid.date ? new Date(bid.date).toLocaleDateString('nl-NL') : ((bid as any).created_at ? new Date((bid as any).created_at).toLocaleDateString('nl-NL') : 'Onbekende datum')}
                           </p>
                         </div>
                         <div className="text-right">
