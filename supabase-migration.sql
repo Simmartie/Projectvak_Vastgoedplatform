@@ -1,16 +1,40 @@
 -- ==========================================
 -- 1. SETUP ENUMS
 -- ==========================================
-CREATE TYPE user_role AS ENUM ('makelaar', 'verkoper', 'koper');
-CREATE TYPE property_type AS ENUM ('huis', 'appartement', 'villa');
-CREATE TYPE property_status AS ENUM ('te-koop', 'onder-bod', 'verkocht');
-CREATE TYPE property_phase AS ENUM ('intake', 'fotografie', 'online', 'bezichtigingen', 'onderhandeling', 'afgerond');
-CREATE TYPE bid_status AS ENUM ('pending', 'accepted', 'rejected');
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('makelaar', 'verkoper', 'koper');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE property_type AS ENUM ('huis', 'appartement', 'villa');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE property_status AS ENUM ('te-koop', 'onder-bod', 'verkocht');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE property_phase AS ENUM ('intake', 'fotografie', 'online', 'bezichtigingen', 'onderhandeling', 'afgerond');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE bid_status AS ENUM ('pending', 'accepted', 'rejected');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- ==========================================
 -- 2. CREATE TABLES
 -- ==========================================
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   mock_id TEXT UNIQUE, -- keeping track of our old mock IDs
   name TEXT NOT NULL,
@@ -19,7 +43,7 @@ CREATE TABLE users (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE properties (
+CREATE TABLE IF NOT EXISTS properties (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   mock_id TEXT UNIQUE,
   address TEXT NOT NULL,
@@ -47,10 +71,15 @@ CREATE TABLE properties (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Add property_id to users now that properties table exists
-ALTER TABLE users ADD COLUMN property_id UUID REFERENCES properties(id);
+-- Add property_id to users now that properties table exists (Idempotent column add)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='property_id') THEN
+        ALTER TABLE users ADD COLUMN property_id UUID REFERENCES properties(id);
+    END IF;
+END $$;
 
-CREATE TABLE visits (
+CREATE TABLE IF NOT EXISTS visits (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   mock_id TEXT UNIQUE,
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
@@ -61,7 +90,7 @@ CREATE TABLE visits (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE bids (
+CREATE TABLE IF NOT EXISTS bids (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   mock_id TEXT UNIQUE,
   property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
@@ -72,7 +101,7 @@ CREATE TABLE bids (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE appointments (
+CREATE TABLE IF NOT EXISTS appointments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
   mock_id TEXT UNIQUE,
   title TEXT NOT NULL,
@@ -84,7 +113,7 @@ CREATE TABLE appointments (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE appointment_participants (
+CREATE TABLE IF NOT EXISTS appointment_participants (
   appointment_id UUID REFERENCES appointments(id) ON DELETE CASCADE,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE,
   PRIMARY KEY (appointment_id, user_id)
@@ -109,7 +138,18 @@ INSERT INTO users (mock_id, name, email, role) VALUES
 ('v7', 'Sophie Mulder', 'v7@email.nl', 'verkoper'),
 ('v8', 'Daan Kerstens', 'v8@email.nl', 'verkoper'),
 ('v9', 'Milou van Dijk', 'v9@email.nl', 'verkoper'),
-('v10', 'Sem Jansen', 'v10@email.nl', 'verkoper');
+('v10', 'Sem Jansen', 'v10@email.nl', 'verkoper'),
+('v11', 'Julia de Rijk', 'v11@email.nl', 'verkoper'),
+('v12', 'Bram Verhoeven', 'v12@email.nl', 'verkoper'),
+('v13', 'Lisa Brouwer', 'v13@email.nl', 'verkoper'),
+('v14', 'Tim van der Berg', 'v14@email.nl', 'verkoper'),
+('v15', 'Eva Koster', 'v15@email.nl', 'verkoper'),
+('k6', 'Ruben Vos', 'ruben@email.nl', 'koper'),
+('k7', 'Noa de Witte', 'noa@email.nl', 'koper'),
+('k8', 'Lucas van Leeuwen', 'lucas@email.nl', 'koper'),
+('k9', 'Lina de Ruiter', 'lina@email.nl', 'koper'),
+('k10', 'Lars Maes', 'lars@email.nl', 'koper')
+ON CONFLICT (mock_id) DO NOTHING;
 
 -- ==========================================
 -- 4. INSERT MOCK PROPERTIES
@@ -119,9 +159,32 @@ INSERT INTO properties (mock_id, address, city, postal_code, price, type, rooms,
 
 ('prop-2', 'Herengracht 456', 'Amsterdam', '1017 BV', 875000, 'appartement', 4, 2, 95, NULL, 1880, 'B', 'te-koop', 'Luxe bovenwoning aan de gracht met schitterend uitzicht. Volledig gemoderniseerd met hoogwaardige afwerking.', ARRAY['Grachtuitzicht', 'Lift aanwezig', 'Balkon', 'Moderne keuken', 'Monumentaal pand'], ARRAY['/canal-house-amsterdam.jpg', '/luxury-apartment-interior.png', '/canal-view-balcony.jpg', '/modern-kitchen.png', '/modern-living-room.png'], (SELECT id FROM users WHERE mock_id = 'v2'), 567, 23, 'bezichtigingen', '{"schools": [{"name": "Montessori Basisschool", "type": "basisonderwijs", "distance": 600, "rating": 4.6}], "sports": [{"name": "Vondelgym", "type": "Fitness", "distance": 900}], "transport": [{"type": "tram", "line": "2", "stop": "Koningsplein", "distance": 200}], "events": [{"name": "Amsterdam Light Festival", "frequency": "Jaarlijks december-januari", "description": "Lichtkunstwerken langs de grachten"}]}'),
 
-('prop-3', 'Beethovenstraat 789', 'Amsterdam', '1077 HV', 1250000, 'villa', 7, 4, 220, 400, 1935, 'A', 'te-koop', 'Statige vrijstaande villa met ruime tuin in Amsterdam Zuid. Volledig duurzaam gerenoveerd met zonnepanelen en warmtepomp.', ARRAY['Zonnepanelen', 'Warmtepomp', 'Eigen oprit', 'Grote tuin', 'Thuiskantoor', 'Garage'], ARRAY['/luxury-villa-amsterdam.jpg', '/spacious-garden.jpg', '/modern-home-office.png', '/modern-living-room.png', '/modern-kitchen.png'], (SELECT id FROM users WHERE mock_id = 'v3'), 189, 8, 'online', '{"schools": [{"name": "International School", "type": "basisonderwijs", "distance": 500, "rating": 4.9}, {"name": "Barlaeus Gymnasium", "type": "middelbaar", "distance": 800, "rating": 4.7}], "sports": [{"name": "Tennispark Oud-Zuid", "type": "Tennis", "distance": 600}, {"name": "Hockey Club Amsterdam", "type": "Hockey", "distance": 1000}], "transport": [{"type": "metro", "line": "52", "stop": "Station Zuid", "distance": 800}, {"type": "tram", "line": "5", "stop": "Beethovenstraat", "distance": 100}], "events": [{"name": "Museumplein Evenementen", "frequency": "Meerdere per jaar", "description": "Concerten en festivals op het Museumplein"}]}');
+('prop-3', 'Beethovenstraat 789', 'Amsterdam', '1077 HV', 1250000, 'villa', 7, 4, 220, 400, 1935, 'A', 'te-koop', 'Statige vrijstaande villa met ruime tuin in Amsterdam Zuid. Volledig duurzaam gerenoveerd met zonnepanelen en warmtepomp.', ARRAY['Zonnepanelen', 'Warmtepomp', 'Eigen oprit', 'Grote tuin', 'Thuiskantoor', 'Garage'], ARRAY['/luxury-villa-amsterdam.jpg', '/spacious-garden.jpg', '/modern-home-office.png', '/modern-living-room.png', '/modern-kitchen.png'], (SELECT id FROM users WHERE mock_id = 'v3'), 189, 8, 'online', '{"schools": [{"name": "International School", "type": "basisonderwijs", "distance": 500, "rating": 4.9}, {"name": "Barlaeus Gymnasium", "type": "middelbaar", "distance": 800, "rating": 4.7}], "sports": [{"name": "Tennispark Oud-Zuid", "type": "Tennis", "distance": 600}, {"name": "Hockey Club Amsterdam", "type": "Hockey", "distance": 1000}], "transport": [{"type": "metro", "line": "52", "stop": "Station Zuid", "distance": 800}, {"type": "tram", "line": "5", "stop": "Beethovenstraat", "distance": 100}], "events": [{"name": "Museumplein Evenementen", "frequency": "Meerdere per jaar", "description": "Concerten en festivals op het Museumplein"}]}'),
 
--- (You can add the other properties later using the application itself, or they can be inserted manually if desired. We only put 3 here to keep the script size manageable)
+('prop-4', 'Tiensestraat 100', 'Leuven', '3000', 450000, 'huis', 4, 3, 140, 120, 1985, 'C', 'te-koop', 'Gezellige stadswoning in het centrum van Leuven. Ideaal voor jonge gezinnen.', ARRAY['Stadstuin', 'Dichtbij scholen', 'Gerenoveerde badkamer'], ARRAY['/modern-living-room.png', '/modern-kitchen.png'], (SELECT id FROM users WHERE mock_id = 'v4'), 120, 5, 'online', '{}'),
+
+('prop-5', 'Demerstraat 12', 'Hasselt', '3500', 320000, 'appartement', 3, 2, 90, NULL, 2010, 'A', 'te-koop', 'Modern appartement in de winkelstraat van Hasselt. Instapklaar en lichtrijk.', ARRAY['Balkon', 'Lift aanwezig', 'Energiezuinig'], ARRAY['/luxury-apartment-interior.png', '/modern-kitchen.png'], (SELECT id FROM users WHERE mock_id = 'v5'), 210, 10, 'onderhandeling', '{}'),
+
+('prop-6', 'Bruul 50', 'Mechelen', '2800', 580000, 'huis', 5, 4, 180, 200, 1970, 'B', 'te-koop', 'Ruime gezinswoning met grote tuin in rustige buurt van Mechelen.', ARRAY['Grote tuin', 'Garage', 'Zonnepanelen'], ARRAY['/modern-dutch-house-exterior.jpg', '/spacious-garden.jpg'], (SELECT id FROM users WHERE mock_id = 'v6'), 85, 2, 'online', '{}'),
+
+('prop-7', 'Meir 100', 'Antwerpen', '2000', 890000, 'appartement', 4, 2, 110, NULL, 1995, 'C', 'te-koop', 'Exclusief penthouse met zicht over de Meir.', ARRAY['Dakterras', 'Luxe afwerking', 'Airconditioning'], ARRAY['/canal-view-balcony.jpg', '/luxury-apartment-interior.png'], (SELECT id FROM users WHERE mock_id = 'v7'), 450, 18, 'bezichtigingen', '{}'),
+
+('prop-8', 'Europalaan 10', 'Genk', '3600', 950000, 'villa', 6, 5, 260, 800, 2005, 'A', 'te-koop', 'Vrijstaande villa in een groene omgeving met zwembad.', ARRAY['Zwembad', 'Dubbele garage', 'Domotica'], ARRAY['/luxury-villa-amsterdam.jpg', '/modern-living-room.png'], (SELECT id FROM users WHERE mock_id = 'v8'), 310, 8, 'online', '{}'),
+
+('prop-9', 'Bondgenotenlaan 50', 'Leuven', '3000', 270000, 'appartement', 2, 1, 65, NULL, 1960, 'D', 'verkocht', 'Ideaal startersappartement nabij het station.', ARRAY['Centraal gelegen', 'Fietsenberging'], ARRAY['/modern-kitchen.png'], (SELECT id FROM users WHERE mock_id = 'v9'), 500, 25, 'afgerond', '{}'),
+
+('prop-10', 'Maastrichterstraat 5', 'Tongeren', '3700', 380000, 'huis', 4, 3, 150, 250, 1950, 'C', 'te-koop', 'Karaktervolle hoekwoning nabij het historisch centrum.', ARRAY['Karaktervol', 'Vernieuwd dak'], ARRAY['/modern-dutch-house-exterior.jpg'], (SELECT id FROM users WHERE mock_id = 'v10'), 150, 6, 'fotografie', '{}'),
+
+('prop-11', 'Louizalaan 200', 'Brussel', '1000', 1150000, 'appartement', 5, 3, 160, NULL, 1980, 'B', 'te-koop', 'Luxe appartement in het hart van Brussel. Gelegen aan de prestigieuze Louizalaan met alle faciliteiten op wandelafstand.', ARRAY['Conciërge', 'Ondergrondse parking', 'Parketvloer'], ARRAY['/luxury-apartment-interior.png', '/modern-home-office.png'], (SELECT id FROM users WHERE mock_id = 'v11'), 520, 22, 'bezichtigingen', '{}'),
+
+('prop-12', 'Veldstraat 20', 'Gent', '9000', 650000, 'huis', 5, 4, 185, 130, 1925, 'E', 'te-koop', 'Historische rijwoning met koertje in het winkelwandelgebied van Gent. Deels te renoveren.', ARRAY['Authentieke elementen', 'Hoge plafonds'], ARRAY['/modern-dutch-house-exterior.jpg', '/modern-living-room.png'], (SELECT id FROM users WHERE mock_id = 'v12'), 280, 14, 'online', '{}'),
+
+('prop-13', 'Steenstraat 14', 'Brugge', '8000', 490000, 'huis', 3, 2, 115, 80, 1890, 'D', 'onder-bod', 'Sfeervolle schipperswoning in het hart van Brugge. Romantische stadskoer.', ARRAY['Beschermd stadsgezicht', 'Gerenoveerde keuken'], ARRAY['/modern-kitchen.png'], (SELECT id FROM users WHERE mock_id = 'v13'), 345, 16, 'onderhandeling', '{}'),
+
+('prop-14', 'Oudegracht 50', 'Utrecht', '3511 AP', 850000, 'appartement', 4, 2, 105, NULL, 1850, 'B', 'te-koop', 'Uniek appartement met werfkelder aan de gracht.', ARRAY['Werfkelder', 'Grachtzicht', 'Vloerverwarming'], ARRAY['/canal-house-amsterdam.jpg', '/canal-view-balcony.jpg'], (SELECT id FROM users WHERE mock_id = 'v14'), 610, 30, 'online', '{}'),
+
+('prop-15', 'Parklaan 10', 'Rotterdam', '3016 BB', 1450000, 'villa', 8, 5, 280, 450, 1910, 'A', 'te-koop', 'Statig herenhuis in het prestigieuze Scheepvaartkwartier. Aan de rand van het park.', ARRAY['Uitzicht op park', 'Historisch', 'Wijnkelder'], ARRAY['/luxury-villa-amsterdam.jpg', '/spacious-garden.jpg', '/modern-living-room.png'], (SELECT id FROM users WHERE mock_id = 'v15'), 850, 40, 'intake', '{}')
+ON CONFLICT (mock_id) DO NOTHING;
 
 -- ==========================================
 -- 5. UPDATE USER PROPERTY_IDs (Verkopers)
@@ -129,6 +192,18 @@ INSERT INTO properties (mock_id, address, city, postal_code, price, type, rooms,
 UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-1') WHERE mock_id = 'v1';
 UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-2') WHERE mock_id = 'v2';
 UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-3') WHERE mock_id = 'v3';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-4') WHERE mock_id = 'v4';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-5') WHERE mock_id = 'v5';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-6') WHERE mock_id = 'v6';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-7') WHERE mock_id = 'v7';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-8') WHERE mock_id = 'v8';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-9') WHERE mock_id = 'v9';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-10') WHERE mock_id = 'v10';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-11') WHERE mock_id = 'v11';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-12') WHERE mock_id = 'v12';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-13') WHERE mock_id = 'v13';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-14') WHERE mock_id = 'v14';
+UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-15') WHERE mock_id = 'v15';
 
 -- ==========================================
 -- 6. INSERT VISITS
@@ -136,16 +211,41 @@ UPDATE users SET property_id = (SELECT id FROM properties WHERE mock_id = 'prop-
 INSERT INTO visits (mock_id, property_id, buyer_id, date, feedback, rating) VALUES
 ('v1', (SELECT id FROM properties WHERE mock_id = 'prop-1'), (SELECT id FROM users WHERE mock_id = '3'), '2024-01-15T00:00:00Z', 'Prachtige woning, zeer geïnteresseerd!', 5),
 ('v2', (SELECT id FROM properties WHERE mock_id = 'prop-1'), (SELECT id FROM users WHERE mock_id = 'k2'), '2024-01-18T00:00:00Z', 'Mooie locatie maar iets te klein voor ons gezin', 3),
-('v3', (SELECT id FROM properties WHERE mock_id = 'prop-5'), (SELECT id FROM users WHERE mock_id = 'k3'), '2024-01-22T00:00:00Z', 'Prachtig uitzicht!', 5);
+('v3', (SELECT id FROM properties WHERE mock_id = 'prop-5'), (SELECT id FROM users WHERE mock_id = 'k3'), '2024-01-22T00:00:00Z', 'Prachtig uitzicht!', 5),
+('v4', (SELECT id FROM properties WHERE mock_id = 'prop-4'), (SELECT id FROM users WHERE mock_id = 'k6'), '2024-02-10T00:00:00Z', 'Zeer mooie tuin, maar veel werk aan.', 4),
+('v5', (SELECT id FROM properties WHERE mock_id = 'prop-7'), (SELECT id FROM users WHERE mock_id = 'k8'), '2024-02-15T00:00:00Z', 'Fantastisch penthouse, adembenemend uitzicht.', 5),
+('v6', (SELECT id FROM properties WHERE mock_id = 'prop-8'), (SELECT id FROM users WHERE mock_id = 'k10'), '2024-02-20T00:00:00Z', 'Mooie villa, perfect voor ons gezin.', 5),
+('v7', (SELECT id FROM properties WHERE mock_id = 'prop-2'), (SELECT id FROM users WHERE mock_id = 'k4'), '2024-03-01T00:00:00Z', 'Heel gaaf appartement, maar te duur.', 4),
+('v8', (SELECT id FROM properties WHERE mock_id = 'prop-3'), (SELECT id FROM users WHERE mock_id = '3'), '2024-03-02T00:00:00Z', 'Geweldig, hier gaan we een bod op uitbrengen!', 5),
+('v9', (SELECT id FROM properties WHERE mock_id = 'prop-9'), (SELECT id FROM users WHERE mock_id = 'k5'), '2024-02-28T00:00:00Z', 'Leuk voor een starter, maar we hebben meer ruimte nodig.', 3),
+('v10', (SELECT id FROM properties WHERE mock_id = 'prop-12'), (SELECT id FROM users WHERE mock_id = 'k7'), '2024-03-03T00:00:00Z', 'Interessant renovatieproject.', 4),
+('v11', (SELECT id FROM properties WHERE mock_id = 'prop-14'), (SELECT id FROM users WHERE mock_id = 'k9'), '2024-02-25T00:00:00Z', 'De werfkelder is uniek!', 5)
+ON CONFLICT (mock_id) DO NOTHING;
 
 -- ==========================================
 -- 7. INSERT BIDS
 -- ==========================================
 INSERT INTO bids (mock_id, property_id, buyer_id, amount, status, comments, created_at) 
 VALUES
-('b1', (SELECT id FROM properties WHERE mock_id = 'prop-1'), (SELECT id FROM users WHERE mock_id = '3'), 485000, 'pending', 'Eerste bod, graag binnen 48 uur reactie', '2024-01-20T00:00:00Z');
+('b1', (SELECT id FROM properties WHERE mock_id = 'prop-1'), (SELECT id FROM users WHERE mock_id = '3'), 485000, 'pending', 'Eerste bod, graag binnen 48 uur reactie', '2024-01-20T00:00:00Z'),
+('b2', (SELECT id FROM properties WHERE mock_id = 'prop-4'), (SELECT id FROM users WHERE mock_id = 'k6'), 430000, 'rejected', 'Te laag bod', '2024-02-12T00:00:00Z'),
+('b3', (SELECT id FROM properties WHERE mock_id = 'prop-7'), (SELECT id FROM users WHERE mock_id = 'k8'), 880000, 'pending', 'Bod onder voorbehoud van financiering', '2024-02-16T00:00:00Z'),
+('b4', (SELECT id FROM properties WHERE mock_id = 'prop-2'), (SELECT id FROM users WHERE mock_id = 'k2'), 850000, 'pending', 'Bod zonder voorbehoud', '2024-03-02T00:00:00Z'),
+('b5', (SELECT id FROM properties WHERE mock_id = 'prop-3'), (SELECT id FROM users WHERE mock_id = '3'), 1200000, 'pending', 'Graag overname meubilair bespreken', '2024-03-03T00:00:00Z'),
+('b6', (SELECT id FROM properties WHERE mock_id = 'prop-9'), (SELECT id FROM users WHERE mock_id = 'k3'), 270000, 'accepted', 'Bod geaccepteerd!', '2024-03-01T00:00:00Z'),
+('b7', (SELECT id FROM properties WHERE mock_id = 'prop-13'), (SELECT id FROM users WHERE mock_id = 'k4'), 480000, 'pending', 'Mooi pand, stevig bod.', '2024-03-01T12:00:00Z'),
+('b8', (SELECT id FROM properties WHERE mock_id = 'prop-14'), (SELECT id FROM users WHERE mock_id = 'k9'), 820000, 'rejected', 'Te ver onder de vraagprijs', '2024-02-26T00:00:00Z')
+ON CONFLICT (mock_id) DO NOTHING;
+
 -- Override the `created_at` specifically for this bid
 UPDATE bids SET created_at = '2024-01-20T00:00:00Z' WHERE mock_id = 'b1';
+UPDATE bids SET created_at = '2024-02-12T00:00:00Z' WHERE mock_id = 'b2';
+UPDATE bids SET created_at = '2024-02-16T00:00:00Z' WHERE mock_id = 'b3';
+UPDATE bids SET created_at = '2024-03-02T00:00:00Z' WHERE mock_id = 'b4';
+UPDATE bids SET created_at = '2024-03-03T00:00:00Z' WHERE mock_id = 'b5';
+UPDATE bids SET created_at = '2024-03-01T00:00:00Z' WHERE mock_id = 'b6';
+UPDATE bids SET created_at = '2024-03-01T12:00:00Z' WHERE mock_id = 'b7';
+UPDATE bids SET created_at = '2024-02-26T00:00:00Z' WHERE mock_id = 'b8';
 
 -- ==========================================
 -- 8. ROW LEVEL SECURITY (RLS) POLICIES
@@ -157,23 +257,75 @@ ALTER TABLE bids ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE appointment_participants ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read access to properties" ON properties FOR SELECT USING (true);
-CREATE POLICY "Allow public read access to users" ON users FOR SELECT USING (true);
-CREATE POLICY "Allow public read access to visits" ON visits FOR SELECT USING (true);
-CREATE POLICY "Allow public read access to bids" ON bids FOR SELECT USING (true);
-CREATE POLICY "Allow public read access to appointments" ON appointments FOR SELECT USING (true);
-CREATE POLICY "Allow public read access to participants" ON appointment_participants FOR SELECT USING (true);
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to properties" ON properties FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to users" ON users FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to visits" ON visits FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to bids" ON bids FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to appointments" ON appointments FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to participants" ON appointment_participants FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- Warning: These are basic policies. For writing data, you probably want to enable writes for authenticated users using `true` for development.
-CREATE POLICY "Allow public insert" ON properties FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON properties FOR UPDATE USING (true);
-CREATE POLICY "Allow public insert" ON users FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON users FOR UPDATE USING (true);
-CREATE POLICY "Allow public insert" ON visits FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON visits FOR UPDATE USING (true);
-CREATE POLICY "Allow public insert" ON bids FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON bids FOR UPDATE USING (true);
-CREATE POLICY "Allow public insert" ON appointments FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON appointments FOR UPDATE USING (true);
-CREATE POLICY "Allow public insert" ON appointment_participants FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow public update" ON appointment_participants FOR UPDATE USING (true);
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON properties FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON properties FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON users FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON users FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON visits FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON visits FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON bids FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON bids FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON appointments FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON appointments FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON appointment_participants FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON appointment_participants FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
