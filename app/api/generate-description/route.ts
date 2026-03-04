@@ -9,11 +9,11 @@ export async function POST(req: Request) {
             return new Response('Missing property data', { status: 400 })
         }
 
-        let apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
+        let apiKey = process.env.GEMINI_API_KEY_DESCRIPTION || process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
         if (apiKey) apiKey = apiKey.replace(/^["']|["']$/g, '')
 
         if (!apiKey) {
-            console.error('GEMINI_API_KEY is not configured')
+            console.error('GEMINI_API_KEY or GEMINI_API_KEY_DESCRIPTION is not configured')
             return new Response('AI service not configured', { status: 500 })
         }
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
             `- Energielabel: ${property.energyLabel || 'Onbekend'}\n`
 
         const res = await fetch(
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
             {
                 method: 'POST',
                 headers: {
