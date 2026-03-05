@@ -59,6 +59,7 @@ export function AppointmentModal({
     const [participantIds, setParticipantIds] = useState<string[]>([])
     const [description, setDescription] = useState('')
     const [properties, setProperties] = useState<Property[]>([])
+    const [isSaving, setIsSaving] = useState(false)
 
     // Reset form when modal opens or appointment changes
     useEffect(() => {
@@ -89,8 +90,9 @@ export function AppointmentModal({
         }
     }, [isOpen, isMakelaar, properties.length])
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setIsSaving(true)
 
         let finalParticipantIds = [...participantIds];
 
@@ -115,14 +117,20 @@ export function AppointmentModal({
             description,
         }
 
-        if (isEditing && appointment) {
-            updateAppointment({ ...appointmentData, id: appointment.id })
-        } else {
-            addAppointment(appointmentData)
+        try {
+            if (isEditing && appointment) {
+                await updateAppointment({ ...appointmentData, id: appointment.id })
+            } else {
+                await addAppointment(appointmentData)
+            }
+            onSave()
+            onClose()
+        } catch (error) {
+            console.error("Failed to save appointment", error)
+            // Ideally show a toast notification here
+        } finally {
+            setIsSaving(false)
         }
-
-        onSave()
-        onClose()
     }
 
     return (
@@ -272,10 +280,12 @@ export function AppointmentModal({
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose}>
+                        <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
                             {isMakelaar ? 'Annuleren' : 'Sluiten'}
                         </Button>
-                        {isMakelaar && <Button type="submit">Opslaan</Button>}
+                        {isMakelaar && <Button type="submit" disabled={isSaving}>
+                            {isSaving ? 'Opslaan...' : 'Opslaan'}
+                        </Button>}
                     </DialogFooter>
                 </form>
             </DialogContent>

@@ -55,8 +55,8 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
         return () => window.removeEventListener('resize', handleResize)
     }, [])
 
-    const loadAppointments = () => {
-        const apps = getAppointmentsForUser(activeUserId)
+    const loadAppointments = async () => {
+        const apps = await getAppointmentsForUser(activeUserId)
         setAppointments(apps)
 
         // Preload properties for the appointments
@@ -95,10 +95,10 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
         setIsModalOpen(true)
     }
 
-    const handleDelete = (id: string, e: React.MouseEvent) => {
+    const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation()
         if (confirm('Weet u zeker dat u deze afspraak wilt verwijderen?')) {
-            deleteAppointment(id)
+            await deleteAppointment(id)
             loadAppointments()
         }
     }
