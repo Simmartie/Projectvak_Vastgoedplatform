@@ -60,14 +60,37 @@ function mapDatabaseProperty(row: any): Property {
   }
 }
 
+function mapDatabaseVisit(row: any): Visit {
+  return {
+    id: row.id,
+    date: row.date || row.created_at,
+    buyerId: row.users?.mock_id || row.buyer_id,
+    buyerName: row.users?.name || 'Onbekende koper',
+    feedback: row.feedback,
+    rating: row.rating
+  }
+}
+
+function mapDatabaseBid(row: any): Bid {
+  return {
+    id: row.id,
+    amount: row.amount,
+    buyerId: row.users?.mock_id || row.buyer_id,
+    buyerName: row.users?.name || 'Onbekende koper',
+    date: row.created_at || row.date,
+    status: row.status,
+    comments: row.comments
+  }
+}
+
 export const getProperties = async (): Promise<Property[]> => {
   const supabase = createClient()
   const { data, error } = await supabase
     .from('properties')
     .select(`
       *,
-      visits ( * ),
-      bids ( * ),
+      visits ( *, users:buyer_id ( mock_id, name ) ),
+      bids ( *, users:buyer_id ( mock_id, name ) ),
       users:seller_id ( mock_id )
     `)
     .order('created_at', { ascending: false })
@@ -79,8 +102,8 @@ export const getProperties = async (): Promise<Property[]> => {
 
   return data.map((row: any) => {
     const mapped = mapDatabaseProperty(row)
-    mapped.visits = row.visits || []
-    mapped.bids = row.bids || []
+    mapped.visits = (row.visits || []).map(mapDatabaseVisit)
+    mapped.bids = (row.bids || []).map(mapDatabaseBid)
     return mapped
   })
 }
@@ -98,8 +121,8 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
     .from('properties')
     .select(`
       *,
-      visits ( * ),
-      bids ( * ),
+      visits ( *, users:buyer_id ( mock_id, name ) ),
+      bids ( *, users:buyer_id ( mock_id, name ) ),
       users:seller_id ( mock_id )
     `)
     .or(isUuid ? `id.eq.${id},mock_id.eq.${id}` : `mock_id.eq.${id}`)
@@ -115,8 +138,8 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
   const mappedProp = mapDatabaseProperty(propData)
 
   // Attach bids and visits
-  mappedProp.visits = propData.visits || []
-  mappedProp.bids = propData.bids || []
+  mappedProp.visits = (propData.visits || []).map(mapDatabaseVisit)
+  mappedProp.bids = (propData.bids || []).map(mapDatabaseBid)
 
   return mappedProp
 }
@@ -141,8 +164,8 @@ export const getPropertiesBySeller = async (sellerId: string): Promise<Property[
     .from('properties')
     .select(`
       *,
-      visits ( * ),
-      bids ( * ),
+      visits ( *, users:buyer_id ( mock_id, name ) ),
+      bids ( *, users:buyer_id ( mock_id, name ) ),
       users:seller_id ( mock_id )
     `)
     .eq('seller_id', actualSellerId)
@@ -155,8 +178,8 @@ export const getPropertiesBySeller = async (sellerId: string): Promise<Property[
 
   return data.map((row: any) => {
     const mapped = mapDatabaseProperty(row)
-    mapped.visits = row.visits || []
-    mapped.bids = row.bids || []
+    mapped.visits = (row.visits || []).map(mapDatabaseVisit)
+    mapped.bids = (row.bids || []).map(mapDatabaseBid)
     return mapped
   })
 }

@@ -329,3 +329,11 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN
     CREATE POLICY "Allow public update" ON appointment_participants FOR UPDATE USING (true);
 EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public delete" ON appointments FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public delete" ON appointment_participants FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
