@@ -4,16 +4,17 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Send, Bot, User, AlertCircle } from 'lucide-react'
+import { Send, Bot, User, AlertCircle, Phone, Mail } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
+  isContactAgent?: boolean
 }
 
-export function ChatInterface({ propertyId }: { propertyId: string }) {
+export function ChatInterface({ propertyId, role }: { propertyId: string, role: 'koper' | 'makelaar' }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -50,7 +51,8 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [...messages, userMessage],
-          propertyId
+          propertyId,
+          role
         })
       })
 
@@ -78,12 +80,20 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
                 const lastMsg = newMessages[newMessages.length - 1]
 
                 if (lastMsg && lastMsg.role === 'assistant') {
-                  lastMsg.content = assistantMessage
+                  const fullText = assistantMessage.trim()
+                  if (fullText === 'CONTACT_AGENT') {
+                    lastMsg.content = 'Voor deze informatie moet u contact opnemen met de makelaar.'
+                    lastMsg.isContactAgent = true
+                  } else {
+                    lastMsg.content = assistantMessage
+                  }
                 } else {
+                  const isContact = assistantMessage.trim() === 'CONTACT_AGENT'
                   newMessages.push({
                     id: (Date.now() + 1).toString(),
                     role: 'assistant',
-                    content: assistantMessage
+                    content: isContact ? 'Voor deze informatie moet u contact opnemen met de makelaar.' : assistantMessage,
+                    isContactAgent: isContact
                   })
                 }
 
@@ -136,14 +146,34 @@ export function ChatInterface({ propertyId }: { propertyId: string }) {
                 </AvatarFallback>
               </Avatar>
               <div className={`rounded-lg p-3 max-w-[80%] text-sm ${m.role === 'user'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted'
                 }`}>
-                {m.content.split('\n').map((paragraph, i) =>
-                  paragraph.trim() === '' ? (
-                    <div key={i} className="h-2" />
-                  ) : (
-                    <p key={i}>{paragraph}</p>
+                {m.isContactAgent ? (
+                  <div className="space-y-4">
+                    <p>Voor deze informatie moet u contact opnemen met de makelaar, Jan Janssen.</p>
+                    <div className="flex flex-col gap-2 mt-2">
+                      <Button variant="default" size="sm" className="w-full justify-start" asChild>
+                        <a href="tel:0412345678">
+                          <Phone className="h-4 w-4 mr-2" />
+                          Bel direct: 0412 34 56 78
+                        </a>
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                        <a href="mailto:jan@makelaardij.nl">
+                          <Mail className="h-4 w-4 mr-2" />
+                          Stuur e-mail: jan@makelaardij.nl
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  m.content.split('\n').map((paragraph, i) =>
+                    paragraph.trim() === '' ? (
+                      <div key={i} className="h-2" />
+                    ) : (
+                      <p key={i}>{paragraph}</p>
+                    )
                   )
                 )}
               </div>

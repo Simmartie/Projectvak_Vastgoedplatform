@@ -269,7 +269,7 @@ export default function KoperPropertyDetailPage() {
                 <CardDescription>Stel je vragen direct aan onze AI assistent</CardDescription>
               </CardHeader>
               <CardContent>
-                <ChatInterface propertyId={property.id} />
+                <ChatInterface propertyId={property.id} role="koper" />
               </CardContent>
             </Card>
           </div>
@@ -323,13 +323,17 @@ export default function KoperPropertyDetailPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start" size="sm">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Bel direct
+                  <Button variant="outline" className="w-full justify-start" size="sm" asChild>
+                    <a href="tel:0412345678">
+                      <Phone className="h-4 w-4 mr-2" />
+                      Bel direct
+                    </a>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" size="sm">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Stuur e-mail
+                  <Button variant="outline" className="w-full justify-start" size="sm" asChild>
+                    <a href="mailto:jan@makelaardij.nl">
+                      <Mail className="h-4 w-4 mr-2" />
+                      Stuur e-mail
+                    </a>
                   </Button>
                 </div>
               </CardContent>
