@@ -28,6 +28,21 @@ export interface Property {
   phase: 'intake' | 'fotografie' | 'online' | 'bezichtigingen' | 'onderhandeling' | 'afgerond'
   // Neighborhood info
   neighborhood: NeighborhoodInfo
+  // Additional Real Estate Features
+  capakey?: string
+  kadastraalInkomen?: number
+  kadastraleOppervlakte?: number
+  schatting?: number
+  bouwmisdrijf?: 'Ja' | 'Nee' | 'In regularisatie' | 'Onbekend'
+  pScore?: 'A' | 'B' | 'C' | 'D'
+  gScore?: 'A' | 'B' | 'C' | 'D'
+  bodemattest?: 'Blanco' | 'Niet blanco / Risico' | 'Vrijstelling'
+  epcScore?: number
+  elektriciteitskeuring?: 'Conform' | 'Niet conform' | 'Geen keuring'
+  conformiteitsattest?: 'Ja' | 'Nee' | 'N.v.t.'
+  conformiteitsattestGeldigheid?: string
+  erfdienstbaarheden?: ('Geen' | 'Nutsleidingen' | 'Recht van doorgang / uitweg' | 'Gemene muur' | 'Andere')[]
+  mobiscore?: number
 }
 
 // Maps database snake_case to our frontend camelCase
@@ -56,7 +71,21 @@ function mapDatabaseProperty(row: any): Property {
     bids: [],   // these need to be fetched separately
     interested: row.interested || 0,
     phase: row.phase,
-    neighborhood: row.neighborhood || { schools: [], sports: [], transport: [], events: [] }
+    neighborhood: row.neighborhood || { schools: [], sports: [], transport: [], events: [] },
+    capakey: row.capakey,
+    kadastraalInkomen: row.kadastraal_inkomen,
+    kadastraleOppervlakte: row.kadastrale_oppervlakte,
+    schatting: row.schatting,
+    bouwmisdrijf: row.bouwmisdrijf,
+    pScore: row.p_score,
+    gScore: row.g_score,
+    bodemattest: row.bodemattest,
+    epcScore: row.epc_score,
+    elektriciteitskeuring: row.elektriciteitskeuring,
+    conformiteitsattest: row.conformiteitsattest,
+    conformiteitsattestGeldigheid: row.conformiteitsattest_geldigheid,
+    erfdienstbaarheden: row.erfdienstbaarheden || [],
+    mobiscore: row.mobiscore
   }
 }
 
@@ -208,6 +237,20 @@ export async function updateProperty(updatedProperty: Partial<Property> & { id: 
   if (updatedProperty.interested !== undefined) updateData.interested = updatedProperty.interested
   if (updatedProperty.phase !== undefined) updateData.phase = updatedProperty.phase
   if (updatedProperty.neighborhood !== undefined) updateData.neighborhood = updatedProperty.neighborhood
+  if (updatedProperty.capakey !== undefined) updateData.capakey = updatedProperty.capakey
+  if (updatedProperty.kadastraalInkomen !== undefined) updateData.kadastraal_inkomen = updatedProperty.kadastraalInkomen
+  if (updatedProperty.kadastraleOppervlakte !== undefined) updateData.kadastrale_oppervlakte = updatedProperty.kadastraleOppervlakte
+  if (updatedProperty.schatting !== undefined) updateData.schatting = updatedProperty.schatting
+  if (updatedProperty.bouwmisdrijf !== undefined) updateData.bouwmisdrijf = updatedProperty.bouwmisdrijf
+  if (updatedProperty.pScore !== undefined) updateData.p_score = updatedProperty.pScore
+  if (updatedProperty.gScore !== undefined) updateData.g_score = updatedProperty.gScore
+  if (updatedProperty.bodemattest !== undefined) updateData.bodemattest = updatedProperty.bodemattest
+  if (updatedProperty.epcScore !== undefined) updateData.epc_score = updatedProperty.epcScore
+  if (updatedProperty.elektriciteitskeuring !== undefined) updateData.elektriciteitskeuring = updatedProperty.elektriciteitskeuring
+  if (updatedProperty.conformiteitsattest !== undefined) updateData.conformiteitsattest = updatedProperty.conformiteitsattest
+  if (updatedProperty.conformiteitsattestGeldigheid !== undefined) updateData.conformiteitsattest_geldigheid = updatedProperty.conformiteitsattestGeldigheid
+  if (updatedProperty.erfdienstbaarheden !== undefined) updateData.erfdienstbaarheden = updatedProperty.erfdienstbaarheden
+  if (updatedProperty.mobiscore !== undefined) updateData.mobiscore = updatedProperty.mobiscore
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(updatedProperty.id)
   let query = supabase.from('properties').update(updateData)
