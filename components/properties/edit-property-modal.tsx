@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Property, updateProperty } from '@/lib/properties'
-import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2 } from 'lucide-react'
+import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface EditPropertyModalProps {
@@ -22,6 +22,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
     const [formData, setFormData] = useState<Property>(property)
     const [isGenerating, setIsGenerating] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    const [showAdvanced, setShowAdvanced] = useState(false)
 
     useEffect(() => {
         if (isOpen) {
@@ -41,6 +42,20 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
 
     const handleSelectChange = (name: string, value: string) => {
         setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleAdvancedNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target
+        setFormData(prev => ({ ...prev, [name]: value === '' ? undefined : Number(value) }))
+    }
+
+    const handleAdvancedSelectChange = (name: keyof Property, value: string) => {
+        setFormData(prev => ({ ...prev, [name]: value }))
+    }
+
+    const handleErfdienstbaarhedenChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const options = Array.from(e.target.selectedOptions, option => option.value) as any
+        setFormData(prev => ({ ...prev, erfdienstbaarheden: options }))
     }
 
     const handleGenerateDescription = async () => {
@@ -361,6 +376,166 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                                         </p>
                                     )}
                                 </div>
+                            </div>
+
+                            <hr />
+
+                            {/* Advanced Features Toggle */}
+                            <div className="space-y-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    className="w-full justify-between"
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                >
+                                    Geavanceerd bewerken (Kadaster, EPC, Attesten)
+                                    {showAdvanced ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                                </Button>
+
+                                {showAdvanced && (
+                                    <div className="space-y-6 pt-4 border-t border-dashed animate-in slide-in-from-top-4 fade-in duration-300">
+
+                                        {/* Kadaster & General Info */}
+                                        <div className="space-y-3">
+                                            <h4 className="font-semibold text-sm">Kadaster & Info</h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="capakey">Kadastrale sleutel (CaPaKey)</Label>
+                                                    <Input id="capakey" name="capakey" value={formData.capakey || ''} onChange={handleTextChange} placeholder="bijv. 12025C0345/00A000" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="kadastraalInkomen">Kadastraal Inkomen (€)</Label>
+                                                    <Input id="kadastraalInkomen" name="kadastraalInkomen" type="number" min="0" value={formData.kadastraalInkomen || ''} onChange={handleAdvancedNumberChange} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="kadastraleOppervlakte">Kadastrale Oppervlakte (m²)</Label>
+                                                    <Input id="kadastraleOppervlakte" name="kadastraleOppervlakte" type="number" min="0" value={formData.kadastraleOppervlakte || ''} onChange={handleAdvancedNumberChange} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="schatting">Schatting (€)</Label>
+                                                    <Input id="schatting" name="schatting" type="number" min="0" value={formData.schatting || ''} onChange={handleAdvancedNumberChange} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="mobiscore">Mobiscore</Label>
+                                                    <Input id="mobiscore" name="mobiscore" type="number" step="0.1" min="0" max="10" value={formData.mobiscore || ''} onChange={handleAdvancedNumberChange} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Bouwmisdrijf / Overtreding</Label>
+                                                    <Select value={formData.bouwmisdrijf || 'Onbekend'} onValueChange={(val) => handleAdvancedSelectChange('bouwmisdrijf', val)}>
+                                                        <SelectTrigger><SelectValue placeholder="Kies status" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Ja">Ja</SelectItem>
+                                                            <SelectItem value="Nee">Nee</SelectItem>
+                                                            <SelectItem value="In regularisatie">In regularisatie</SelectItem>
+                                                            <SelectItem value="Onbekend">Onbekend</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr className="border-dashed" />
+
+                                        {/* Overstromingskans */}
+                                        <div className="space-y-3">
+                                            <h4 className="font-semibold text-sm">Overstromingskans</h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>P-Score (Perceel)</Label>
+                                                    <Select value={formData.pScore || ''} onValueChange={(val) => handleAdvancedSelectChange('pScore', val)}>
+                                                        <SelectTrigger><SelectValue placeholder="Kies score (A-D)" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="A">A (Geen overstroming gemodelleerd)</SelectItem>
+                                                            <SelectItem value="B">B (Kleine kans onder klimaatverandering)</SelectItem>
+                                                            <SelectItem value="C">C (Kleine kans huidig klimaat)</SelectItem>
+                                                            <SelectItem value="D">D (Middelgrote kans huidig klimaat)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>G-Score (Gebouw)</Label>
+                                                    <Select value={formData.gScore || ''} onValueChange={(val) => handleAdvancedSelectChange('gScore', val)}>
+                                                        <SelectTrigger><SelectValue placeholder="Kies score (A-D)" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="A">A (Geen overstroming gemodelleerd)</SelectItem>
+                                                            <SelectItem value="B">B (Kleine kans onder klimaatverandering)</SelectItem>
+                                                            <SelectItem value="C">C (Kleine kans huidig klimaat)</SelectItem>
+                                                            <SelectItem value="D">D (Middelgrote kans huidig klimaat)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <hr className="border-dashed" />
+
+                                        {/* Certificaten & Attesten */}
+                                        <div className="space-y-3">
+                                            <h4 className="font-semibold text-sm">Certificaten & Attesten</h4>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label>Bodemattest Status</Label>
+                                                    <Select value={formData.bodemattest || 'Blanco'} onValueChange={(val) => handleAdvancedSelectChange('bodemattest', val)}>
+                                                        <SelectTrigger><SelectValue placeholder="Kies status" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Blanco">Blanco</SelectItem>
+                                                            <SelectItem value="Niet blanco / Risico">Niet blanco / Risico</SelectItem>
+                                                            <SelectItem value="Vrijstelling">Vrijstelling</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="epcScore">EPC Score (kWh/m²)</Label>
+                                                    <Input id="epcScore" name="epcScore" type="number" min="0" value={formData.epcScore || ''} onChange={handleAdvancedNumberChange} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Elektriciteitskeuring</Label>
+                                                    <Select value={formData.elektriciteitskeuring || 'Geen keuring'} onValueChange={(val) => handleAdvancedSelectChange('elektriciteitskeuring', val)}>
+                                                        <SelectTrigger><SelectValue placeholder="Kies status" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Conform">Conform</SelectItem>
+                                                            <SelectItem value="Niet conform">Niet conform</SelectItem>
+                                                            <SelectItem value="Geen keuring">Geen keuring</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Erfdienstbaarheden</Label>
+                                                    <select
+                                                        multiple
+                                                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        value={formData.erfdienstbaarheden || []}
+                                                        onChange={handleErfdienstbaarhedenChange}
+                                                    >
+                                                        <option value="Geen">Geen</option>
+                                                        <option value="Nutsleidingen">Nutsleidingen</option>
+                                                        <option value="Recht van doorgang / uitweg">Recht van doorgang / uitweg</option>
+                                                        <option value="Gemene muur">Gemene muur</option>
+                                                        <option value="Andere">Andere</option>
+                                                    </select>
+                                                    <p className="text-[10px] text-muted-foreground">Houd Ctrl (of Cmd) ingedrukt om meerdere te selecteren</p>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Conformiteitsattest</Label>
+                                                    <Select value={formData.conformiteitsattest || 'N.v.t.'} onValueChange={(val) => handleAdvancedSelectChange('conformiteitsattest', val)}>
+                                                        <SelectTrigger><SelectValue placeholder="Kies optie" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Ja">Ja</SelectItem>
+                                                            <SelectItem value="Nee">Nee</SelectItem>
+                                                            <SelectItem value="N.v.t.">N.v.t.</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                {formData.conformiteitsattest === 'Ja' && (
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="conformiteitsattestGeldigheid">Geldig tot</Label>
+                                                        <Input id="conformiteitsattestGeldigheid" name="conformiteitsattestGeldigheid" type="date" value={formData.conformiteitsattestGeldigheid || ''} onChange={handleTextChange} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
