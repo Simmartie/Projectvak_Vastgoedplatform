@@ -361,7 +361,7 @@ export default function PropertyDetailPage() {
                 <CardDescription>Stel je vragen direct aan onze AI assistent</CardDescription>
               </CardHeader>
               <CardContent>
-                <ChatInterface propertyId={property.id} />
+                <ChatInterface propertyId={property.id} role="makelaar" />
               </CardContent>
             </Card>
           </div>
