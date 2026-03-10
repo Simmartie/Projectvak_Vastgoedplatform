@@ -17,6 +17,29 @@ function buildPrompt(question: string, property: any): string {
     propertySummaryParts.push(`Belangrijke kenmerken: ${property.features.join(', ')}.`)
   }
 
+  // Advanced Property Features
+  const advancedFeatures: string[] = []
+  if (property.epcScore !== undefined && property.epcScore !== null) advancedFeatures.push(`EPC score: ${property.epcScore}`)
+  if (property.kadastraalInkomen !== undefined && property.kadastraalInkomen !== null) advancedFeatures.push(`Kadastraal inkomen (KI): €${property.kadastraalInkomen}`)
+  if (property.kadastraleOppervlakte !== undefined && property.kadastraleOppervlakte !== null) advancedFeatures.push(`Kadastrale oppervlakte: ${property.kadastraleOppervlakte}m²`)
+  if (property.schatting !== undefined && property.schatting !== null) advancedFeatures.push(`Schatting: €${property.schatting}`)
+  if (property.bouwmisdrijf !== undefined && property.bouwmisdrijf !== null) advancedFeatures.push(`Bouwmisdrijf: ${property.bouwmisdrijf}`)
+  if (property.pScore !== undefined && property.pScore !== null) advancedFeatures.push(`P-score: ${property.pScore}`)
+  if (property.gScore !== undefined && property.gScore !== null) advancedFeatures.push(`G-score: ${property.gScore}`)
+  if (property.bodemattest !== undefined && property.bodemattest !== null) advancedFeatures.push(`Bodemattest: ${property.bodemattest}`)
+  if (property.elektriciteitskeuring !== undefined && property.elektriciteitskeuring !== null) advancedFeatures.push(`Elektriciteitskeuring: ${property.elektriciteitskeuring}`)
+  if (property.conformiteitsattest !== undefined && property.conformiteitsattest !== null) {
+    let attestInfo = `Conformiteitsattest: ${property.conformiteitsattest}`
+    if (property.conformiteitsattestGeldigheid) attestInfo += ` (geldig tot ${property.conformiteitsattestGeldigheid})`
+    advancedFeatures.push(attestInfo)
+  }
+  if (property.erfdienstbaarheden?.length) advancedFeatures.push(`Erfdienstbaarheden: ${property.erfdienstbaarheden.join(', ')}`)
+  if (property.mobiscore !== undefined && property.mobiscore !== null) advancedFeatures.push(`Mobiscore: ${property.mobiscore}`)
+
+  if (advancedFeatures.length > 0) {
+    propertySummaryParts.push(`Andere kenmerken en attesten: ${advancedFeatures.join('; ')}.`)
+  }
+
   if (property.neighborhood?.schools?.length) {
     const scholen = property.neighborhood.schools
       .map((s: any) => `${s.name} (${s.type}) op ${s.distance}m`)
