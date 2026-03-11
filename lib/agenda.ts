@@ -26,7 +26,7 @@ function mapDbAppointment(dbRecord: any): Appointment {
     date: dbRecord.date,
     startTime: dbRecord.start_time.substring(0, 5), // 'HH:MM:SS' to 'HH:MM'
     endTime: dbRecord.end_time.substring(0, 5), // 'HH:MM:SS' to 'HH:MM'
-    propertyId: dbRecord.properties?.mock_id || undefined,
+    propertyId: dbRecord.properties?.id || dbRecord.properties?.mock_id || undefined,
     description: dbRecord.description || undefined,
     mock_id: dbRecord.mock_id || undefined,
     participantIds: dbRecord.appointment_participants?.map((p: any) => p.users?.mock_id).filter(Boolean) || []
@@ -38,7 +38,7 @@ export async function getAppointmentsForUser(userId: string): Promise<Appointmen
     .from('appointments')
     .select(`
       *,
-      properties ( mock_id ),
+      properties ( id, mock_id ),
       appointment_participants!inner (
         users!inner ( mock_id )
       )
@@ -58,7 +58,7 @@ export async function getAllAppointments(): Promise<Appointment[]> {
     .from('appointments')
     .select(`
       *,
-      properties ( mock_id ),
+      properties ( id, mock_id ),
       appointment_participants (
         users ( mock_id )
       )
@@ -130,7 +130,7 @@ export async function addAppointment(appointment: Omit<Appointment, 'id'>): Prom
     .from('appointments')
     .select(`
       *,
-      properties ( mock_id ),
+      properties ( id, mock_id ),
       appointment_participants (
         users ( mock_id )
       )
@@ -213,7 +213,7 @@ export async function updateAppointment(updatedAppointment: Appointment): Promis
     .from('appointments')
     .select(`
       *,
-      properties ( mock_id ),
+      properties ( id, mock_id ),
       appointment_participants (
         users ( mock_id )
       )

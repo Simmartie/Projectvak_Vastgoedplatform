@@ -15,6 +15,7 @@ import { PropertyImageCarousel } from '@/components/properties/property-image-ca
 export default function VerkoperDashboard() {
   const router = useRouter()
   const [property, setProperty] = useState<Property | null>(null)
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -131,6 +132,20 @@ export default function VerkoperDashboard() {
                       <p className="text-3xl font-bold text-primary">
                         €{property.price.toLocaleString('nl-NL')}
                       </p>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <div className={`text-muted-foreground leading-relaxed whitespace-pre-line ${!isDescriptionExpanded ? 'line-clamp-4' : ''}`}>
+                        {property.description}
+                      </div>
+                      {property.description && property.description.length > 300 && (
+                        <button
+                          onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                          className="mt-2 text-sm text-primary font-medium hover:underline"
+                        >
+                          {isDescriptionExpanded ? 'Minder weergeven ↑' : 'Meer weergeven ↓'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
