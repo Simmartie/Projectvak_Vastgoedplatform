@@ -96,7 +96,9 @@ function mapDatabaseVisit(row: any): Visit {
     buyerId: row.users?.mock_id || row.buyer_id,
     buyerName: row.users?.name || 'Onbekende koper',
     feedback: row.feedback,
-    rating: row.rating
+    rating: row.rating,
+    feedback_suggestion: row.feedback_suggestion,
+    rating_suggestion: row.rating_suggestion
   }
 }
 
@@ -108,7 +110,10 @@ function mapDatabaseBid(row: any): Bid {
     buyerName: row.users?.name || 'Onbekende koper',
     date: row.created_at || row.date,
     status: row.status,
-    comments: row.comments
+    comments: row.comments,
+    amount_suggestion: row.amount_suggestion,
+    status_suggestion: row.status_suggestion,
+    comment_suggestion: row.comment_suggestion
   }
 }
 

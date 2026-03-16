@@ -121,8 +121,21 @@ CREATE TABLE IF NOT EXISTS visits (
   date TIMESTAMPTZ NOT NULL,
   feedback TEXT,
   rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  feedback_suggestion TEXT,
+  rating_suggestion INTEGER CHECK (rating_suggestion >= 1 AND rating_suggestion <= 5),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent column additions for visits
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='visits' AND column_name='feedback_suggestion') THEN
+        ALTER TABLE visits ADD COLUMN feedback_suggestion TEXT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='visits' AND column_name='rating_suggestion') THEN
+        ALTER TABLE visits ADD COLUMN rating_suggestion INTEGER CHECK (rating_suggestion >= 1 AND rating_suggestion <= 5);
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS bids (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -132,8 +145,25 @@ CREATE TABLE IF NOT EXISTS bids (
   amount INTEGER NOT NULL,
   status bid_status DEFAULT 'pending',
   comments TEXT,
+  amount_suggestion INTEGER,
+  status_suggestion bid_status,
+  comment_suggestion TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Idempotent column additions for bids
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bids' AND column_name='amount_suggestion') THEN
+        ALTER TABLE bids ADD COLUMN amount_suggestion INTEGER;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bids' AND column_name='status_suggestion') THEN
+        ALTER TABLE bids ADD COLUMN status_suggestion bid_status;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='bids' AND column_name='comment_suggestion') THEN
+        ALTER TABLE bids ADD COLUMN comment_suggestion TEXT;
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS appointments (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
