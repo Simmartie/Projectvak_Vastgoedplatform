@@ -15,14 +15,6 @@ Het Vastgoedplatform is een modern webplatform gebouwd met Next.js dat functiona
 - **📝 Verkopers**: Beheer eigen properties, volg status en interesse
 - **💼 Makelaars**: CRM overzicht, beheer meerdere properties, track bezichtigingen en biedingen
 
-## 🏗️ Software Architecture
-
-Bekijk de volledige software architectuur documentatie:
-
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - Uitgebreide architectuur documentatie
-- **[architecture-visual.html](./architecture-visual.html)** - Interactief visueel diagram (open in browser)
-- **[architecture-diagram.mmd](./architecture-diagram.mmd)** - Mermaid diagram source
-- **[architecture-diagram-detailed.mmd](./architecture-diagram-detailed.mmd)** - Entity Relationship Diagram
 
 ### Architectuur Samenvatting
 

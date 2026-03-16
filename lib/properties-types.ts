@@ -38,6 +38,8 @@ export interface Visit {
     buyerName: string
     feedback?: string
     rating?: number
+    feedback_suggestion?: string
+    rating_suggestion?: number
 }
 
 export interface Bid {
@@ -48,4 +50,7 @@ export interface Bid {
     date: string
     status: 'pending' | 'accepted' | 'rejected'
     comments?: string
+    amount_suggestion?: number
+    status_suggestion?: 'pending' | 'accepted' | 'rejected'
+    comment_suggestion?: string
 }
