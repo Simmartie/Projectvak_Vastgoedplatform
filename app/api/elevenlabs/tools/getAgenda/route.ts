@@ -7,7 +7,7 @@ const ELEVENLABS_WEBHOOK_SECRET = process.env.ELEVENLABS_WEBHOOK_SECRET;
 export async function POST(req: Request) {
     try {
         // ---------------------------------------------------------------------------
-        // Step 1: Security check - Verify Authorization Header (x-api-key)
+        // Step 1: Security check - Verify Authorization Header (x-api-key) test
         // ---------------------------------------------------------------------------
         const authHeader = req.headers.get('x-api-key');
         const secret = process.env.ELEVENLABS_WEBHOOK_SECRET;
