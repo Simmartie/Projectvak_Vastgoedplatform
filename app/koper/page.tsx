@@ -11,10 +11,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Building2, MapPin, Ruler, Euro, Search, MessageSquare, Heart, Map, List } from 'lucide-react'
+import { Building2, MapPin, Ruler, Euro, Search, MessageSquare, Heart, Map, List, Navigation } from 'lucide-react'
 import Link from 'next/link'
-import { PROPERTY_COORDINATES } from '@/lib/properties'
+import { CITY_COORDINATES } from '@/lib/properties'
+import dynamic from 'next/dynamic'
 
+// Dynamically import map to avoid SSR issues with Leaflet
+const PropertyMap = dynamic(() => import('@/components/map/property-map'), { 
+  ssr: false,
+  loading: () => <div className="w-full h-[calc(100vh-300px)] bg-muted animate-pulse rounded-lg flex items-center justify-center"><p className="text-muted-foreground">Kaart laden...</p></div>
+})
 
 export default function KoperDashboard() {
   const router = useRouter()
@@ -24,6 +30,8 @@ export default function KoperDashboard() {
   const [filterPrice, setFilterPrice] = useState<string>('all')
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid')
   const [idealLocation, setIdealLocation] = useState('')
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null)
+  const [isLocating, setIsLocating] = useState(false)
   const [sortedByDistance, setSortedByDistance] = useState<Property[]>([])
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
   const [isTogglingFavorite, setIsTogglingFavorite] = useState<Record<string, boolean>>({})
@@ -43,31 +51,94 @@ export default function KoperDashboard() {
     loadData()
   }, [router])
 
-  const calculateDistance = (city1: string, city2: string): number => {
-    // Mock distance calculation - in production this would use real geocoding
-    const cityDistances: Record<string, Record<string, number>> = {
-      'amsterdam': { 'amsterdam': 0, 'utrecht': 35, 'rotterdam': 60, 'den haag': 50 },
-      'utrecht': { 'amsterdam': 35, 'utrecht': 0, 'rotterdam': 45, 'den haag': 55 },
-      'rotterdam': { 'amsterdam': 60, 'utrecht': 45, 'rotterdam': 0, 'den haag': 20 },
-      'den haag': { 'amsterdam': 50, 'utrecht': 55, 'rotterdam': 20, 'den haag': 0 }
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    // Haversine formula to calculate distance in kilometers
+    const R = 6371 
+    const dLat = ((lat2 - lat1) * Math.PI) / 180
+    const dLon = ((lon2 - lon1) * Math.PI) / 180
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return Math.round(R * c)
+  }
+
+  // Get haversine distance between reference location and a property city
+  const getDistanceToProperty = (property: Property): number | null => {
+    const propertyCoords = CITY_COORDINATES[property.city.toLowerCase()]
+    if (!propertyCoords) return null
+
+    // Priority 1: Use GPS location
+    if (userLocation) {
+      return calculateDistance(userLocation.lat, userLocation.lng, propertyCoords.lat, propertyCoords.lng)
     }
-    const c1 = city1.toLowerCase()
-    const c2 = city2.toLowerCase()
-    return cityDistances[c1]?.[c2] ?? 100
+
+    // Priority 2: Use typed ideal location city name
+    if (idealLocation && idealLocation !== 'Huidige locatie') {
+      const referenceCoords = CITY_COORDINATES[idealLocation.toLowerCase()]
+      if (referenceCoords) {
+        return calculateDistance(referenceCoords.lat, referenceCoords.lng, propertyCoords.lat, propertyCoords.lng)
+      }
+    }
+
+    return null
+  }
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocatie wordt niet ondersteund door uw browser')
+      return
+    }
+    
+    setIsLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        })
+        setIdealLocation('Huidige locatie')
+        setIsLocating(false)
+      },
+      (error) => {
+        console.error('Error getting location:', error)
+        alert('Kan uw locatie niet ophalen. Controleer of u toestemming heeft gegeven.')
+        setIsLocating(false)
+      }
+    )
   }
 
   useEffect(() => {
-    if (idealLocation) {
+    if (userLocation || idealLocation) {
       const sorted = [...filteredProperties].sort((a, b) => {
-        const distA = calculateDistance(idealLocation, a.city)
-        const distB = calculateDistance(idealLocation, b.city)
+        let distA = Infinity
+        let distB = Infinity
+        
+        const coordsA = CITY_COORDINATES[a.city.toLowerCase()]
+        const coordsB = CITY_COORDINATES[b.city.toLowerCase()]
+
+        // Priority 1: GPS location
+        if (userLocation) {
+          if (coordsA) distA = calculateDistance(userLocation.lat, userLocation.lng, coordsA.lat, coordsA.lng)
+          if (coordsB) distB = calculateDistance(userLocation.lat, userLocation.lng, coordsB.lat, coordsB.lng)
+        // Priority 2: typed city name
+        } else if (idealLocation && idealLocation !== 'Huidige locatie') {
+          const refCoords = CITY_COORDINATES[idealLocation.toLowerCase()]
+          if (refCoords) {
+            if (coordsA) distA = calculateDistance(refCoords.lat, refCoords.lng, coordsA.lat, coordsA.lng)
+            if (coordsB) distB = calculateDistance(refCoords.lat, refCoords.lng, coordsB.lat, coordsB.lng)
+          }
+        }
         return distA - distB
       })
       setSortedByDistance(sorted)
     } else {
       setSortedByDistance(filteredProperties)
     }
-  }, [idealLocation, filterType, filterPrice, searchTerm, properties])
+  }, [userLocation, idealLocation, filterType, filterPrice, searchTerm, properties])
 
   const filteredProperties = properties.filter(property => {
     const matchesSearch = property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,6 +165,19 @@ export default function KoperDashboard() {
   const displayProperties = [...displayPropertiesBase].sort((a, b) => {
     const isFavA = favoriteIds.has(a.id)
     const isFavB = favoriteIds.has(b.id)
+
+    // When a location is set, sort by distance first
+    if (userLocation || idealLocation) {
+      const distA = getDistanceToProperty(a) ?? Infinity
+      const distB = getDistanceToProperty(b) ?? Infinity
+      if (distA !== distB) return distA - distB
+      // Favorites as tiebreaker
+      if (isFavA && !isFavB) return -1
+      if (!isFavA && isFavB) return 1
+      return 0
+    }
+
+    // Without location, favorites come first
     if (isFavA && !isFavB) return -1
     if (!isFavA && isFavB) return 1
     return 0
@@ -187,12 +271,25 @@ export default function KoperDashboard() {
                   </Select>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-4 flex gap-2">
                   <Input
                     placeholder="Ideale locatie (bijv. Amsterdam)"
                     value={idealLocation}
-                    onChange={(e) => setIdealLocation(e.target.value)}
+                    onChange={(e) => {
+                      setIdealLocation(e.target.value)
+                      if (e.target.value === '') setUserLocation(null) // Reset on clear
+                    }}
+                    className="flex-1"
                   />
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    title="Gebruik mijn huidige locatie"
+                    onClick={handleGetCurrentLocation}
+                    disabled={isLocating}
+                  >
+                    <Navigation className={`h-4 w-4 ${isLocating ? 'animate-pulse' : ''}`} />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -227,9 +324,10 @@ export default function KoperDashboard() {
         {
           viewMode === 'map' ? (
             <div className="grid md:grid-cols-[350px_1fr] gap-4">
-              <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-300px)]">
+              <div className="space-y-3 overflow-y-auto max-h-[calc(100vh-300px)] pr-2">
                 {displayProperties.map((property) => {
-                  const distance = idealLocation ? calculateDistance(idealLocation, property.city) : null
+                  const distance = getDistanceToProperty(property)
+                  
                   return (
                     <Card key={property.id} className="hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-4">
@@ -266,93 +364,19 @@ export default function KoperDashboard() {
                 })}
               </div>
 
-              <Card className="overflow-hidden">
-                <div className="relative h-[calc(100vh-300px)] bg-muted">
-                  <svg
-                    className="w-full h-full"
-                    viewBox="0 0 800 600"
-                    style={{ background: '#f0f0f0' }}
-                  >
-                    {/* Background map outline of Belgium/Netherlands */}
-                    <rect x="0" y="0" width="800" height="600" fill="#e8f4f8" />
-                    <text x="400" y="30" textAnchor="middle" fontSize="20" fontWeight="bold" fill="#333">
-                      Kaartweergave
-                    </text>
-
-                    {/* Map all properties as markers */}
-                    {displayProperties.map((property) => {
-                      const coords = PROPERTY_COORDINATES[property.id]
-                      if (!coords) return null
-
-                      // Simple projection: scale lat/lng to SVG coordinates
-                      // Belgium/Netherlands rough bounds: lat 50-53, lng 3-7
-                      const x = ((coords.lng - 3) / (7 - 3)) * 700 + 50
-                      const y = 550 - ((coords.lat - 50) / (53 - 50)) * 500
-
-                      return (
-                        <g key={property.id}>
-                          {/* Marker pin */}
-                          <circle
-                            cx={x}
-                            cy={y}
-                            r="8"
-                            fill="#2563eb"
-                            stroke="white"
-                            strokeWidth="2"
-                            style={{ cursor: 'pointer' }}
-                          />
-                          {/* City label */}
-                          <text
-                            x={x}
-                            y={y + 20}
-                            textAnchor="middle"
-                            fontSize="12"
-                            fill="#333"
-                            fontWeight="500"
-                          >
-                            {property.city}
-                          </text>
-                          {/* Price label */}
-                          <text
-                            x={x}
-                            y={y + 33}
-                            textAnchor="middle"
-                            fontSize="10"
-                            fill="#666"
-                          >
-                            €{(property.price / 1000).toFixed(0)}k
-                          </text>
-                        </g>
-                      )
-                    })}
-
-                    {/* Legend */}
-                    <g transform="translate(20, 550)">
-                      <rect x="0" y="0" width="200" height="40" fill="white" opacity="0.9" rx="5" />
-                      <circle cx="15" cy="20" r="6" fill="#2563eb" stroke="white" strokeWidth="2" />
-                      <text x="30" y="25" fontSize="12" fill="#333">
-                        {displayProperties.length} panden
-                      </text>
-                    </g>
-                  </svg>
-
-                  <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm p-3 rounded-lg shadow-lg">
-                    <p className="text-sm font-medium">
-                      {displayProperties.length} panden weergegeven
-                    </p>
-                    {idealLocation && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Gesorteerd op afstand tot {idealLocation}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Card>
+              <div className="relative">
+                <PropertyMap 
+                  properties={displayProperties} 
+                  userLocation={userLocation}
+                  idealLocation={idealLocation}
+                />
+              </div>
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {displayProperties.map((property) => {
-                const distance = idealLocation ? calculateDistance(idealLocation, property.city) : null
+                const distance = getDistanceToProperty(property)
+                
                 return (
                   <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden group">
                     <div className="relative aspect-video bg-muted overflow-hidden">
