@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getPropertyById, Property } from '@/lib/properties'
+import { getUserFavoriteIds, toggleFavorite } from '@/lib/favorites'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +20,8 @@ export default function KoperPropertyDetailPage() {
   const params = useParams()
   const [property, setProperty] = useState<Property | null>(null)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+  const [isFavorited, setIsFavorited] = useState(false)
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -28,9 +31,13 @@ export default function KoperPropertyDetailPage() {
     }
 
     const loadProperty = async () => {
-      const prop = await getPropertyById(params.id as string)
-      if (prop) {
-        setProperty(prop)
+      if (params.id) {
+        const data = await getPropertyById(params.id as string)
+        if (data) {
+          setProperty(data)
+          const favs = await getUserFavoriteIds(user.id)
+          setIsFavorited(favs.includes(data.id))
+        }
       }
     }
     loadProperty()
@@ -68,9 +75,25 @@ export default function KoperPropertyDetailPage() {
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm hover:bg-background"
+                      className={`h-10 w-10 rounded-full bg-background/90 backdrop-blur-sm transition-colors ${isFavorited ? 'bg-red-50 hover:bg-red-100 text-red-500' : 'hover:bg-background'}`}
+                      onClick={async (e) => {
+                        e.preventDefault()
+                        const user = getCurrentUser()
+                        if (!user || !property || isTogglingFavorite) return
+                        
+                        setIsTogglingFavorite(true)
+                        const currentFav = isFavorited
+                        setIsFavorited(!currentFav) // optimistic
+                        
+                        const newFav = await toggleFavorite(user.id, property.id, currentFav)
+                        if (newFav === currentFav) {
+                           setIsFavorited(currentFav) // revert on error
+                        }
+                        setIsTogglingFavorite(false)
+                      }}
+                      disabled={isTogglingFavorite}
                     >
-                      <Heart className="h-5 w-5" />
+                      <Heart className="h-5 w-5" fill={isFavorited ? "currentColor" : "none"} />
                     </Button>
                   </div>
                 </div>
@@ -294,9 +317,29 @@ export default function KoperPropertyDetailPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full" size="lg">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Opslaan als favoriet
+                <Button 
+                    variant="outline" 
+                    className={`w-full ${isFavorited ? 'bg-red-50 hover:bg-red-100 text-red-500 border-red-200' : ''}`}
+                    size="lg"
+                    onClick={async (e) => {
+                      e.preventDefault()
+                      const user = getCurrentUser()
+                      if (!user || !property || isTogglingFavorite) return
+                      
+                      setIsTogglingFavorite(true)
+                      const currentFav = isFavorited
+                      setIsFavorited(!currentFav) // optimistic
+                      
+                      const newFav = await toggleFavorite(user.id, property.id, currentFav)
+                      if (newFav === currentFav) {
+                          setIsFavorited(currentFav) // revert on error
+                      }
+                      setIsTogglingFavorite(false)
+                    }}
+                    disabled={isTogglingFavorite}
+                >
+                  <Heart className="h-4 w-4 mr-2" fill={isFavorited ? "currentColor" : "none"} />
+                  {isFavorited ? 'Opgeslagen als favoriet' : 'Opslaan als favoriet'}
                 </Button>
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/agenda?propertyId=${property.id}&title=Bezichtiging pand ${property.address}&sellerId=${property.sellerId}`}>

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar } from 'lucide-react'
+import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MakelaarDashboard() {
@@ -112,10 +112,10 @@ export default function MakelaarDashboard() {
 
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                    <Users className="h-4 w-4 text-primary" />
+                    <Heart className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <div className="text-xs text-muted-foreground font-medium">Interesse</div>
+                    <div className="text-xs text-muted-foreground font-medium">Favorieten</div>
                     <div className="text-lg font-bold">{totalInterested}</div>
                   </div>
                 </div>
@@ -165,12 +165,12 @@ export default function MakelaarDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Geïnteresseerden</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Heart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalInterested}</div>
               <p className="text-xs text-muted-foreground">
-                actieve interesse
+                keer als favoriet aangeduid
               </p>
             </CardContent>
           </Card>
@@ -308,8 +308,8 @@ export default function MakelaarDashboard() {
                           <span>{property.bids.length} biedingen</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{property.interested} interesse</span>
+                          <Heart className="h-4 w-4 text-muted-foreground" />
+                          <span>{property.interested} keer favoriet</span>
                         </div>
                       </div>
 
@@ -397,8 +397,8 @@ export default function MakelaarDashboard() {
                           <span>{property.bids.length} biedingen</span>
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-muted-foreground" />
-                          <span>{property.interested} interesse</span>
+                          <Heart className="h-4 w-4 text-muted-foreground" />
+                          <span>{property.interested} keer favoriet</span>
                         </div>
                       </div>
 
@@ -489,8 +489,8 @@ export default function MakelaarDashboard() {
                             <span>{property.bids.length} biedingen</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
-                            <Users className="h-4 w-4 text-muted-foreground" />
-                            <span>{property.interested} interesse</span>
+                            <Heart className="h-4 w-4 text-muted-foreground" />
+                            <span>{property.interested} keer favoriet</span>
                           </div>
                         </div>
 

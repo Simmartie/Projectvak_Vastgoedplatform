@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft } from 'lucide-react'
+import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft, Heart } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
@@ -390,8 +390,8 @@ export default function PropertyDetailPage() {
 
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">Geïnteresseerd</span>
+                    <Heart className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm">Keer favoriet</span>
                   </div>
                   <span className="font-bold">{property.interested}</span>
                 </div>

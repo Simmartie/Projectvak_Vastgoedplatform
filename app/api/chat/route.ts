@@ -47,7 +47,7 @@ function buildPrompt(question: string, property: any, role: string): string {
     if (property.erfdienstbaarheden?.length) advancedFeatures.push(`Erfdienstbaarheden: ${property.erfdienstbaarheden.join(', ')}`)
 
     advancedFeatures.push(`Fase: ${property.phase}`)
-    advancedFeatures.push(`Aantal geïnteresseerden: ${property.interested}`)
+    advancedFeatures.push(`Aantal keer als favoriet aangeduid door gebruikers: ${property.interested}`)
     advancedFeatures.push(`Aantal weergaven: ${property.views}`)
     advancedFeatures.push(`Aantal bezichtigingen: ${property.visits?.length || 0}`)
     advancedFeatures.push(`Aantal biedingen: ${property.bids?.length || 0}`)
