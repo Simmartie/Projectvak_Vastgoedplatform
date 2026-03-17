@@ -34,16 +34,34 @@ function mapDbAppointment(dbRecord: any): Appointment {
 }
 
 export async function getAppointmentsForUser(userId: string): Promise<Appointment[]> {
+  // First get appointment IDs for the user
+  const { data: participantData, error: partError } = await supabase
+    .from('appointment_participants')
+    .select(`
+      appointment_id,
+      users!inner (mock_id)
+    `)
+    .eq('users.mock_id', userId);
+
+  if (partError) {
+    console.error('Error fetching appointment IDs for user:', partError);
+    return [];
+  }
+
+  const appointmentIds = participantData?.map(p => p.appointment_id) || [];
+
+  if (appointmentIds.length === 0) return [];
+
   const { data, error } = await supabase
     .from('appointments')
     .select(`
       *,
       properties ( id, mock_id ),
-      appointment_participants!inner (
-        users!inner ( mock_id )
+      appointment_participants (
+        users ( mock_id )
       )
     `)
-    .eq('appointment_participants.users.mock_id', userId);
+    .in('id', appointmentIds);
 
   if (error) {
     console.error('Error fetching appointments for user:', error);
