@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCurrentUser } from '@/lib/auth'
 import { getProperties, Property } from '@/lib/properties'
+import { getUserFavoriteIds, toggleFavorite } from '@/lib/favorites'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +25,8 @@ export default function KoperDashboard() {
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid')
   const [idealLocation, setIdealLocation] = useState('')
   const [sortedByDistance, setSortedByDistance] = useState<Property[]>([])
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set())
+  const [isTogglingFavorite, setIsTogglingFavorite] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -31,11 +34,13 @@ export default function KoperDashboard() {
       router.push('/')
       return
     }
-    const loadProperties = async () => {
+    const loadData = async () => {
       const data = await getProperties()
       setProperties(data)
+      const favs = await getUserFavoriteIds(user.id)
+      setFavoriteIds(new Set(favs))
     }
-    loadProperties()
+    loadData()
   }, [router])
 
   const calculateDistance = (city1: string, city2: string): number => {
@@ -84,7 +89,46 @@ export default function KoperDashboard() {
     return matchesSearch && matchesType && matchesPrice && property.status === 'te-koop'
   })
 
-  const displayProperties = idealLocation ? sortedByDistance : filteredProperties
+  const displayPropertiesBase = idealLocation ? sortedByDistance : filteredProperties
+  
+  const displayProperties = [...displayPropertiesBase].sort((a, b) => {
+    const isFavA = favoriteIds.has(a.id)
+    const isFavB = favoriteIds.has(b.id)
+    if (isFavA && !isFavB) return -1
+    if (!isFavA && isFavB) return 1
+    return 0
+  })
+
+  const handleToggleFavorite = async (propertyId: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const user = getCurrentUser()
+    if (!user || isTogglingFavorite[propertyId]) return
+
+    const isCurrentlyFavorited = favoriteIds.has(propertyId)
+    
+    // Optimistic update
+    setIsTogglingFavorite(prev => ({ ...prev, [propertyId]: true }))
+    setFavoriteIds(prev => {
+      const newFavs = new Set(prev)
+      if (isCurrentlyFavorited) newFavs.delete(propertyId)
+      else newFavs.add(propertyId)
+      return newFavs
+    })
+
+    const newFavStatus = await toggleFavorite(user.id, propertyId, isCurrentlyFavorited)
+    
+    // Revert if API call failed
+    if (newFavStatus === isCurrentlyFavorited) {
+      setFavoriteIds(prev => {
+        const newFavs = new Set(prev)
+        if (isCurrentlyFavorited) newFavs.add(propertyId)
+        else newFavs.delete(propertyId)
+        return newFavs
+      })
+    }
+    setIsTogglingFavorite(prev => ({ ...prev, [propertyId]: false }))
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -321,9 +365,11 @@ export default function KoperDashboard() {
                         <Button
                           size="icon"
                           variant="secondary"
-                          className="h-8 w-8 rounded-full backdrop-blur-sm hover:bg-background bg-primary"
+                          className={`h-8 w-8 rounded-full backdrop-blur-sm transition-colors ${favoriteIds.has(property.id) ? 'bg-red-50 hover:bg-red-100 text-red-500' : 'hover:bg-background bg-primary text-white'}`}
+                          onClick={(e) => handleToggleFavorite(property.id, e)}
+                          disabled={isTogglingFavorite[property.id]}
                         >
-                          <Heart className="h-4 w-4" />
+                          <Heart className="h-4 w-4" fill={favoriteIds.has(property.id) ? "currentColor" : "none"} />
                         </Button>
                       </div>
                       <div className="absolute bottom-3 left-3">

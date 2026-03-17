@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
-import { Eye, Users, TrendingUp, Euro, Clock, MapPin, CheckCircle2, Calendar, Building2 } from 'lucide-react'
+import { Eye, Users, TrendingUp, Euro, Clock, MapPin, CheckCircle2, Calendar, Building2, Heart } from 'lucide-react'
 import { PropertyImageCarousel } from '@/components/properties/property-image-carousel'
 
 export default function VerkoperDashboard() {
@@ -332,7 +332,7 @@ export default function VerkoperDashboard() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Interesse</CardTitle>
+                <CardTitle>Favorieten</CardTitle>
                 <CardDescription>
                   Huidige statistieken
                 </CardDescription>
@@ -365,11 +365,11 @@ export default function VerkoperDashboard() {
                 <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="bg-background p-2 rounded-lg">
-                      <Users className="h-5 w-5 text-primary" />
+                      <Heart className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{property.interested}</p>
-                      <p className="text-xs text-muted-foreground">Geïnteresseerd</p>
+                      <p className="text-xs text-muted-foreground">Keer als favoriet aangeduid</p>
                     </div>
                   </div>
                 </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 
-import { LogOut, Calendar, ArrowLeft } from 'lucide-react'
+import { LogOut, Calendar, ArrowLeft, Heart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getCurrentUser, logout } from '@/lib/auth'
 import { useRouter, usePathname } from 'next/navigation'
@@ -35,6 +35,18 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-4">
+          {user?.role === 'koper' && pathname !== '/koper/favorieten' && (
+             <Link href="/koper/favorieten">
+               <Button variant="ghost" size="sm" className="hidden sm:flex text-red-500 hover:text-red-600 hover:bg-red-50">
+                 <Heart className="h-4 w-4 mr-2" fill="currentColor" />
+                 Favorieten
+               </Button>
+               <Button variant="ghost" size="icon" className="sm:hidden text-red-500 hover:text-red-600 hover:bg-red-50">
+                 <Heart className="h-4 w-4" fill="currentColor" />
+               </Button>
+             </Link>
+          )}
+
           {pathname === '/agenda' ? (
             <Link href={dashboardUrl}>
               <Button variant="ghost" size="sm" className="flex">
