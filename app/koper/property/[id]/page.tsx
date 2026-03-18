@@ -43,6 +43,17 @@ export default function KoperPropertyDetailPage() {
     loadProperty()
   }, [router, params.id])
 
+  useEffect(() => {
+    if (property && typeof window !== 'undefined' && window.location.hash === '#chat') {
+      setTimeout(() => {
+        const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
+        if (chatCard) {
+          chatCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [property]);
+
   if (!property) {
     return <div>Loading...</div>
   }
