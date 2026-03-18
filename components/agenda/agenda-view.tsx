@@ -119,7 +119,8 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
 
     const handleSyncGoogleCalendar = () => {
         const origin = window.location.origin
-        const icalUrl = `${origin}/api/agenda/ical?userId=${activeUserId}`
+        // URL must end in .ics for Google Calendar to accept it
+        const icalUrl = `${origin}/agenda/${activeUserId}.ics`
 
         // Open Google Calendar with the URL
         const googleCalendarUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(icalUrl)}`
