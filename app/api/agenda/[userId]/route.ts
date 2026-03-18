@@ -21,9 +21,11 @@ function formatICalDate(dateStr: string, timeStr: string): string {
     return `${dt.getUTCFullYear()}${pad(dt.getUTCMonth() + 1)}${pad(dt.getUTCDate())}T${pad(dt.getUTCHours())}${pad(dt.getUTCMinutes())}00Z`
 }
 
-export async function GET(req: Request) {
-    const { searchParams } = new URL(req.url)
-    const userId = searchParams.get('userId')
+export async function GET(
+    _req: Request,
+    { params }: { params: Promise<{ userId: string }> }
+) {
+    const { userId } = await params
 
     if (!userId) {
         return new Response('Missing userId', { status: 400 })
