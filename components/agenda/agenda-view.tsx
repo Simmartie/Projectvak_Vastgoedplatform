@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Plus, ChevronLeft, ChevronRight, Clock, MapPin, Trash2 } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, CalendarDays } from 'lucide-react'
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday, isSameWeek, getISOWeek } from 'date-fns'
 import { nl } from 'date-fns/locale'
 import { useSearchParams } from 'next/navigation'
@@ -117,6 +117,15 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
     const prevDays = () => setCurrentDate(new Date(currentDate.getTime() - daysToShow * 24 * 60 * 60 * 1000))
     const goToToday = () => setCurrentDate(new Date())
 
+    const handleSyncGoogleCalendar = () => {
+        const origin = window.location.origin
+        const icalUrl = `${origin}/api/agenda/ical?userId=${activeUserId}`
+
+        // Open Google Calendar with the URL
+        const googleCalendarUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(icalUrl)}`
+        window.open(googleCalendarUrl, '_blank')
+    }
+
     const handleNext = () => daysToShow === 7 ? nextPeriod() : nextDays()
     const handlePrev = () => daysToShow === 7 ? prevPeriod() : prevDays()
 
@@ -155,6 +164,10 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
                                     <ChevronRight className="h-4 w-4" />
                                 </Button>
                             </div>
+
+                            <Button onClick={handleSyncGoogleCalendar} variant="outline" className="h-10 whitespace-nowrap">
+                                <CalendarDays className="mr-1 sm:mr-2 h-4 w-4" /> <span className="hidden xs:inline sm:inline">Google</span> Agenda
+                            </Button>
 
                             {isMakelaar && (
                                 <Button onClick={() => handleAddNew(new Date())} className="h-10 whitespace-nowrap flex-1 sm:flex-none">
