@@ -38,6 +38,17 @@ export default function PropertyDetailPage() {
     loadProperty()
   }, [router, params.id])
 
+  useEffect(() => {
+    if (property && typeof window !== 'undefined' && window.location.hash === '#chat') {
+      setTimeout(() => {
+        const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
+        if (chatCard) {
+          chatCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
+    }
+  }, [property]);
+
   if (!property) {
     return <div>Loading...</div>
   }
@@ -257,7 +268,9 @@ export default function PropertyDetailPage() {
                               bid.status === 'rejected' ? 'destructive' :
                                 'secondary'
                           }>
-                            {bid.status}
+                            {bid.status === 'pending' ? 'In behandeling' :
+                             bid.status === 'accepted' ? 'Geaccepteerd' :
+                             'Afgewezen'}
                           </Badge>
                         </div>
                       </div>

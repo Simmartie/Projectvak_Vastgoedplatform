@@ -2,7 +2,7 @@ import { getAppointmentsForUser } from './lib/agenda';
 import { getPropertyById } from './lib/properties';
 
 async function test() {
-  const apps = getAppointmentsForUser('1'); // makelaar
+  const apps = await getAppointmentsForUser('1'); // makelaar
   console.log("Appointments:");
   console.dir(apps);
   
