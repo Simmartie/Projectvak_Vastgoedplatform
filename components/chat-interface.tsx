@@ -14,6 +14,16 @@ interface Message {
   isContactAgent?: boolean
 }
 
+function formatMessage(text: string) {
+  const parts = text.split(/(\*\*.*?\*\*)/g)
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>
+    }
+    return part
+  })
+}
+
 export function ChatInterface({ propertyId, role }: { propertyId: string, role: 'koper' | 'makelaar' }) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -168,13 +178,21 @@ export function ChatInterface({ propertyId, role }: { propertyId: string, role: 
                     </div>
                   </div>
                 ) : (
-                  m.content.split('\n').map((paragraph, i) =>
-                    paragraph.trim() === '' ? (
-                      <div key={i} className="h-2" />
-                    ) : (
-                      <p key={i}>{paragraph}</p>
-                    )
-                  )
+                  m.content.split('\n').map((paragraph, i) => {
+                    const trimmed = paragraph.trim()
+                    if (trimmed === '') return <div key={i} className="h-2" />
+
+                    if (trimmed.startsWith('* ') || trimmed.startsWith('- ')) {
+                      return (
+                        <div key={i} className="flex gap-2 ml-4">
+                          <span className="font-bold">&bull;</span>
+                          <span>{formatMessage(trimmed.substring(2))}</span>
+                        </div>
+                      )
+                    }
+
+                    return <p key={i}>{formatMessage(paragraph)}</p>
+                  })
                 )}
               </div>
             </div>
