@@ -60,10 +60,12 @@ export function AppointmentModal({
     const [description, setDescription] = useState('')
     const [properties, setProperties] = useState<Property[]>([])
     const [isSaving, setIsSaving] = useState(false)
+    const [error, setError] = useState<string | null>(null)
 
     // Reset form when modal opens or appointment changes
     useEffect(() => {
         if (isOpen) {
+            setError(null)
             if (appointment) {
                 setTitle(appointment.title)
                 setDate(appointment.date)
@@ -92,6 +94,13 @@ export function AppointmentModal({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        setError(null)
+
+        if (startTime >= endTime) {
+            setError("De eindtijd moet later zijn dan de starttijd.")
+            return
+        }
+
         setIsSaving(true)
 
         let finalParticipantIds = [...participantIds];
@@ -278,6 +287,10 @@ export function AppointmentModal({
                             />
                         </div>
                     </div>
+
+                    {error && (
+                        <p className="text-sm text-destructive">{error}</p>
+                    )}
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
