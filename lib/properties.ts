@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/client'
 import { NeighborhoodInfo, School, SportsClub, Transport, Event, Visit, Bid } from './properties-types'
+import { processPastAppointments } from './agenda'
 
 export interface Property {
   id: string
@@ -118,6 +119,7 @@ function mapDatabaseBid(row: any): Bid {
 }
 
 export const getProperties = async (): Promise<Property[]> => {
+  await processPastAppointments()
   const supabase = createClient()
   const { data, error } = await supabase
     .from('properties')
@@ -146,6 +148,8 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
   if (!id || id === 'null' || id === 'undefined') {
     return undefined
   }
+
+  await processPastAppointments()
 
   const supabase = createClient()
 
@@ -179,6 +183,7 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
 }
 
 export const getPropertiesBySeller = async (sellerId: string): Promise<Property[]> => {
+  await processPastAppointments()
   const supabase = createClient()
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sellerId)

@@ -1,4 +1,4 @@
-'use client'
+// Removed 'use client' directive so it can be imported in both server and client environments
 
 export type UserRole = 'makelaar' | 'verkoper' | 'koper'
 
