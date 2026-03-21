@@ -89,6 +89,8 @@ export default function VerkoperDashboard() {
     }
     : null
 
+  const visibleVisits = property.visits.filter(v => v.feedback && v.rating)
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -228,7 +230,7 @@ export default function VerkoperDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {property.visits.length === 0 ? (
+                {visibleVisits.length === 0 ? (
                   <div className="text-center py-8">
                     <Clock className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
                     <p className="text-muted-foreground">
@@ -237,7 +239,7 @@ export default function VerkoperDashboard() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {property.visits.map((visit) => (
+                    {visibleVisits.map((visit) => (
                       <div
                         key={visit.id}
                         className="border rounded-lg p-4 space-y-2"
@@ -356,7 +358,7 @@ export default function VerkoperDashboard() {
                       <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{property.visits.length}</p>
+                      <p className="text-2xl font-bold">{visibleVisits.length}</p>
                       <p className="text-xs text-muted-foreground">Bezichtigingen</p>
                     </div>
                   </div>

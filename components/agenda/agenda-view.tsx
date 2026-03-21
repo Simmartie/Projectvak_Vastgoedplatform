@@ -22,8 +22,75 @@ interface AgendaViewProps {
 const HOURS = Array.from({ length: 15 }, (_, i) => i + 7) // 07:00 to 21:00
 const HOUR_HEIGHT = 64 // 64px = h-16
 
+function getMinutesFromTime(timeStr: string) {
+  const [h, m] = timeStr.split(':').map(Number)
+  return h * 60 + m
+}
+
+function calculateColumnLayout(appointments: Appointment[]) {
+  const sorted = [...appointments].sort((a, b) => {
+    const startA = getMinutesFromTime(a.startTime)
+    const startB = getMinutesFromTime(b.startTime)
+    if (startA !== startB) return startA - startB
+    return getMinutesFromTime(b.endTime) - getMinutesFromTime(a.endTime)
+  })
+
+  // Group into overlapping clusters
+  const clusters: Appointment[][] = []
+  let currentCluster: Appointment[] = []
+  let clusterEnd = 0
+
+  sorted.forEach(appt => {
+    const start = getMinutesFromTime(appt.startTime)
+    const end = getMinutesFromTime(appt.endTime)
+
+    if (currentCluster.length > 0 && start >= clusterEnd) {
+      clusters.push(currentCluster)
+      currentCluster = []
+      clusterEnd = 0
+    }
+    currentCluster.push(appt)
+    clusterEnd = Math.max(clusterEnd, end)
+  })
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster)
+  }
+
+  const layout = new Map<string, { col: number; maxCols: number }>()
+
+  clusters.forEach(cluster => {
+    const cols: Appointment[][] = []
+    cluster.forEach(appt => {
+      let placed = false
+      const start = getMinutesFromTime(appt.startTime)
+      for (let i = 0; i < cols.length; i++) {
+        const lastAppt = cols[i][cols[i].length - 1]
+        // Allow same-minute start if the previous ended (inclusive -> no overlap)
+        if (getMinutesFromTime(lastAppt.endTime) <= start) {
+          cols[i].push(appt)
+          placed = true
+          break
+        }
+      }
+      if (!placed) {
+        cols.push([appt])
+      }
+    })
+
+    const maxCols = cols.length
+    cols.forEach((colArray, colIdx) => {
+      colArray.forEach(appt => {
+        layout.set(appt.id!, { col: colIdx, maxCols })
+      })
+    })
+  })
+
+  return layout
+}
+
 export function AgendaView({ userId: propUserId }: AgendaViewProps) {
     const [currentDate, setCurrentDate] = useState<Date>(new Date())
+    const [currentTime, setCurrentTime] = useState<Date>(new Date())
     const [appointments, setAppointments] = useState<Appointment[]>([])
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>()
@@ -52,7 +119,13 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
 
         handleResize()
         window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
+
+        const timer = setInterval(() => setCurrentTime(new Date()), 60000)
+
+        return () => {
+            window.removeEventListener('resize', handleResize)
+            clearInterval(timer)
+        }
     }, [])
 
     const loadAppointments = async () => {
@@ -213,6 +286,12 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
                                 {visibleDays.map((day, dayIndex) => {
                                     const dateStr = format(day, 'yyyy-MM-dd')
                                     const dayAppointments = appointments.filter(a => a.date === dateStr)
+                                    const layoutMap = calculateColumnLayout(dayAppointments)
+                                    const isCurrentDay = isToday(day)
+                                    const currentHour = currentTime.getHours()
+                                    const currentMinute = currentTime.getMinutes()
+                                    const timeLineTop = ((currentHour - HOURS[0]) * HOUR_HEIGHT) + (currentMinute / 60 * HOUR_HEIGHT)
+                                    const showTimeLine = isCurrentDay && currentHour >= HOURS[0] && currentHour <= HOURS[HOURS.length - 1]
 
                                     return (
                                         <div
@@ -221,6 +300,14 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
                                             style={{ minHeight: `${HOURS.length * HOUR_HEIGHT}px` }}
                                             onClick={() => handleAddNew(day)}
                                         >
+                                            {showTimeLine && (
+                                                <div 
+                                                    className="absolute left-0 right-0 border-t-2 border-red-500 z-30 pointer-events-none" 
+                                                    style={{ top: `${timeLineTop}px` }}
+                                                >
+                                                    <div className="absolute -left-1.5 -top-1.5 w-3 h-3 bg-red-500 rounded-full" />
+                                                </div>
+                                            )}
                                             {dayAppointments.map(appointment => {
                                                 const property = appointment.propertyId ? propertiesMap[appointment.propertyId] : null
 
@@ -229,16 +316,29 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
 
                                                 const top = ((startH - HOURS[0]) * HOUR_HEIGHT) + (startM / 60 * HOUR_HEIGHT)
                                                 const height = ((endH - startH) * HOUR_HEIGHT) + ((endM - startM) / 60 * HOUR_HEIGHT)
+                                                
+                                                const apptEnd = new Date(`${appointment.date}T${appointment.endTime}:00`)
+                                                const isPast = apptEnd < currentTime
+
+                                                const layout = layoutMap.get(appointment.id!) || { col: 0, maxCols: 1 }
+                                                const leftPercent = (layout.col / layout.maxCols) * 100
+                                                const widthPercent = (1 / layout.maxCols) * 100
 
                                                 return (
                                                     <div
                                                         key={appointment.id}
                                                         onClick={(e) => handleEdit(appointment, e)}
-                                                        className={`absolute left-0.5 right-0.5 sm:left-1 sm:right-1 rounded-md p-1 sm:p-1.5 shadow-sm border overflow-hidden cursor-pointer transition-colors group ${property
+                                                        className={`absolute rounded-md p-1 sm:p-1.5 shadow-sm border overflow-hidden cursor-pointer transition-colors group ${property
                                                             ? 'bg-blue-100 border-blue-200 hover:bg-blue-200 dark:bg-blue-900/30 dark:border-blue-800 dark:hover:bg-blue-800/50'
                                                             : 'bg-emerald-100 border-emerald-200 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800 dark:hover:bg-emerald-800/50'
-                                                            }`}
-                                                        style={{ top: `${top}px`, height: `${height}px`, zIndex: 20 }}
+                                                            } ${isPast ? 'opacity-50 grayscale' : ''}`}
+                                                        style={{ 
+                                                            top: `${top}px`, 
+                                                            height: `${height}px`,
+                                                            left: `calc(${leftPercent}% + 2px)`,
+                                                            width: `calc(${widthPercent}% - 4px)`,
+                                                            zIndex: 20 + layout.col 
+                                                        }}
                                                     >
                                                         <div className="flex justify-between items-start h-full">
                                                             <div className="flex flex-col min-w-0 h-full w-full">

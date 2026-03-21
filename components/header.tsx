@@ -8,14 +8,6 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { OptimmoLogo } from '@/components/optimmo-logo'
 
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'elevenlabs-convai': any;
-    }
-  }
-}
-
 export function Header() {
   const user = getCurrentUser()
   const router = useRouter()
@@ -97,7 +89,7 @@ export function Header() {
 
       {/* Raw ElevenLabs Widget Component */}
       {isMounted && user?.role === 'makelaar' && (
-        <elevenlabs-convai agent-id="agent_9501kkpnxn7sefq9w11v25w80xty"></elevenlabs-convai>
+        React.createElement('elevenlabs-convai', { 'agent-id': 'agent_9501kkpnxn7sefq9w11v25w80xty' })
       )}
     </>
   )

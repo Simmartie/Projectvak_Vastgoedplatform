@@ -14,6 +14,113 @@ export interface Appointment {
 
 const supabase = createClient();
 
+let isProcessingAppointments = false;
+
+export async function processPastAppointments() {
+  if (isProcessingAppointments) return;
+  isProcessingAppointments = true;
+  // If running in the browser (client-side), delay execution by 2 seconds.
+  // This prevents an SSR-Hydration race condition where the Server and Client
+  // simultaneously run this logic and both insert duplicate visits because
+  // the server's DB transaction hasn't become visible to the client yet.
+  if (typeof window !== 'undefined') {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+
+  try {
+    const { MOCK_USERS } = await import('@/lib/auth');
+  
+    // Get all appointments
+    const { data: appointmentsData, error: apptError } = await supabase
+      .from('appointments')
+      .select(`
+        id,
+        date,
+        end_time,
+        property_id,
+        appointment_participants (
+          users ( id, mock_id )
+        )
+      `);
+
+    if (apptError || !appointmentsData) {
+      console.error("APP_PROCESS: Failed to fetch appointments", apptError);
+      return;
+    }
+
+    // Use Europe/Brussels timezone to format the current time as a local ISO string for comparison
+    const formatter = new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'Europe/Brussels',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+    const nowStr = formatter.format(new Date()).replace(' ', 'T');
+
+    for (const appt of appointmentsData) {
+      if (!appt.property_id || !appt.date || !appt.end_time) continue;
+
+      const endDateTimeLiteral = `${appt.date}T${appt.end_time}`;
+      
+      // Check if the appointment is in the past using timezone-agnostic string comparison
+      if (endDateTimeLiteral < nowStr) {
+        // Find buyer among participants
+        let buyerId = null;
+        if (appt.appointment_participants) {
+          for (const p of appt.appointment_participants) {
+            const mockId = (p as any).users?.mock_id;
+            const userDbId = (p as any).users?.id;
+            if (mockId) {
+              const user = MOCK_USERS.find((u: any) => u.id === mockId);
+              if (user && user.role === 'koper') {
+                buyerId = userDbId;
+                break;
+              }
+            }
+          }
+        }
+
+        // Check if visit already exists for this appointment
+        let query = supabase
+          .from('visits')
+          .select('id')
+          .eq('property_id', appt.property_id)
+          .eq('date', endDateTimeLiteral);
+
+        if (buyerId) {
+          query = query.eq('buyer_id', buyerId);
+        } else {
+          query = query.is('buyer_id', null);
+        }
+
+        const { data: existingVisits, error: visitCheckError } = await query.limit(1);
+
+        if (!visitCheckError && (!existingVisits || existingVisits.length === 0)) {
+          // Create visit
+          const { error: visitError } = await supabase
+            .from('visits')
+            .insert({
+              property_id: appt.property_id,
+              buyer_id: buyerId || null,
+              date: endDateTimeLiteral
+            });
+
+          if (visitError) {
+             console.error('APP_PROCESS: Error creating visit:', visitError);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error("APP_PROCESS: Exception:", err);
+  } finally {
+    isProcessingAppointments = false;
+  }
+}
+
 // Keep for type compatibility in other files until they are removed, but they shouldn't be used now.
 export const MOCK_APPOINTMENTS: Appointment[] = [];
 
@@ -34,6 +141,9 @@ function mapDbAppointment(dbRecord: any): Appointment {
 }
 
 export async function getAppointmentsForUser(userId: string): Promise<Appointment[]> {
+  // Execute in background without blocking the UI fetch, as appointments are no longer completely deleted
+  processPastAppointments().catch(console.error);
+
   // First get appointment IDs for the user
   const { data: participantData, error: partError } = await supabase
     .from('appointment_participants')
@@ -72,6 +182,9 @@ export async function getAppointmentsForUser(userId: string): Promise<Appointmen
 }
 
 export async function getAllAppointments(): Promise<Appointment[]> {
+  // Execute in background
+  processPastAppointments().catch(console.error);
+
   const { data, error } = await supabase
     .from('appointments')
     .select(`
