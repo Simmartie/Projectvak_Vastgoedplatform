@@ -14,7 +14,11 @@ export interface Appointment {
 
 const supabase = createClient();
 
+let isProcessingAppointments = false;
+
 export async function processPastAppointments() {
+  if (isProcessingAppointments) return;
+  isProcessingAppointments = true;
   // If running in the browser (client-side), delay execution by 2 seconds.
   // This prevents an SSR-Hydration race condition where the Server and Client
   // simultaneously run this logic and both insert duplicate visits because
@@ -112,6 +116,8 @@ export async function processPastAppointments() {
     }
   } catch (err) {
     console.error("APP_PROCESS: Exception:", err);
+  } finally {
+    isProcessingAppointments = false;
   }
 }
 
