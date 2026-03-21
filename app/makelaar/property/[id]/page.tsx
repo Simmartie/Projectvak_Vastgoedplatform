@@ -39,11 +39,14 @@ export default function PropertyDetailPage() {
   }, [router, params.id])
 
   useEffect(() => {
-    if (property && typeof window !== 'undefined' && window.location.hash === '#chat') {
+    if (property && typeof window !== 'undefined') {
       setTimeout(() => {
-        const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
-        if (chatCard) {
-          chatCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (window.location.hash === '#chat') {
+          const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
+          if (chatCard) chatCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (window.location.hash === '#suggesties') {
+          const suggestiesCard = document.getElementById('suggesties') as HTMLElement;
+          if (suggestiesCard) suggestiesCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 100);
     }
@@ -242,7 +245,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="suggesties">
               <CardHeader>
                 <CardTitle>Bezichtigingen ({visibleVisits.length})</CardTitle>
                 <CardDescription>
