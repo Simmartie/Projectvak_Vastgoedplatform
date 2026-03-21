@@ -275,6 +275,26 @@ export async function updateProperty(updatedProperty: Partial<Property> & { id: 
   }
 }
 
+export async function updateVisit(visitId: string, updates: Partial<Visit>): Promise<void> {
+  const supabase = createClient()
+
+  const updateData: any = {}
+  if (updates.feedback !== undefined) updateData.feedback = updates.feedback
+  if (updates.rating !== undefined) updateData.rating = updates.rating
+  if (updates.feedback_suggestion !== undefined) updateData.feedback_suggestion = updates.feedback_suggestion
+  if (updates.rating_suggestion !== undefined) updateData.rating_suggestion = updates.rating_suggestion
+
+  const { error } = await supabase
+    .from('visits')
+    .update(updateData)
+    .eq('id', visitId)
+
+  if (error) {
+    console.error('Error updating visit:', error)
+    throw new Error(error.message)
+  }
+}
+
 export function calculateDistance(
   lat1: number,
   lon1: number,
