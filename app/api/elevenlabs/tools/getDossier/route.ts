@@ -1,60 +1,60 @@
-import { NextResponse } from 'next/server';
-import { getDossier } from '@/services/supabaseTools/getDossier';
+import { createClient } from '@supabase/supabase-js'
 
-// Extract the webhook secret securely from environment variables
-const ELEVENLABS_WEBHOOK_SECRET = process.env.ELEVENLABS_WEBHOOK_SECRET;
+// Initialize Supabase fallback (same as getAgenda)
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function POST(req: Request) {
     try {
-        // ---------------------------------------------------------------------------
-        // Step 2: Security check - Verify Authorization Header
-        // ---------------------------------------------------------------------------
-        const authHeader = req.headers.get('x-api-key'); // AANGEPAST: Dit moet x-api-key zijn!
-        const secret = process.env.ELEVENLABS_WEBHOOK_SECRET; // AANGEPAST: process.env toegevoegd! 
-
-        if (!secret) {
-            console.warn('ELEVENLABS_WEBHOOK_SECRET is not set in environment variables');
-        }
-
-        if (authHeader !== ELEVENLABS_WEBHOOK_SECRET) {
-            return NextResponse.json(
-                { error: 'Unauthorized. Invalid or missing Authorization header.' },
-                { status: 401 }
-            );
-        }
-
-        // ---------------------------------------------------------------------------
-        // Step 2: Extract payload safely
-        // ---------------------------------------------------------------------------
+        // 1. Extract payload exactly like getAgenda
         const body = await req.json();
-        console.log("Pakketje van ElevenLabs:", body);
 
-        // ElevenLabs stuurt de data direct, dus we pakken het adres er direct uit!
-        const hetAdres = body.address;
+        // ElevenLabs could name the parameter 'address' or 'streetName'
+        const targetAddress = body.address || body.streetName;
 
-        if (!hetAdres) {
-            return NextResponse.json(
-                { error: 'Bad Request. Missing address in request body.' },
-                { status: 400 }
-            );
+        console.log("\n=== ELEVENLABS WEBHOOK CALL (getDossier) ===")
+        console.log("Full AI Payload:", body)
+        console.log("Parsed Address:", targetAddress)
+
+        if (!targetAddress) {
+            console.log("Error: The AI did not provide an address parameter.")
+            return Response.json({
+                success: false,
+                error: "You must provide an 'address' parameter to search the properties."
+            }, { status: 400 });
         }
 
-        // ---------------------------------------------------------------------------
-        // Step 3: Haal de data op uit Supabase
-        // ---------------------------------------------------------------------------
-        // We sturen het adres naar jouw getDossier functie
-        const result = await getDossier({ streetName: hetAdres });
+        // 2. Direct Supabase Query (Robust to 0 results without crashing)
+        const { data: properties, error } = await supabase
+            .from('properties')
+            .select('*')
+            .ilike('address', `%${targetAddress}%`)
+            .limit(1);
 
-        console.log("Resultaat uit database:", result);
+        if (error) {
+            console.error("Supabase Error:", error);
+            throw error;
+        }
 
-        // Stuur de data terug naar ElevenLabs
-        return NextResponse.json(result);
+        const foundProperty = properties && properties.length > 0 ? properties[0] : null;
+
+        if (foundProperty) {
+            console.log("Property Found:", foundProperty.address)
+        } else {
+            console.log("Property NOT Found for query:", targetAddress)
+        }
+        console.log("==================================================\n")
+
+        // 3. Send structured response back to ElevenLabs
+        return Response.json({
+            success: true,
+            property: foundProperty,
+            message: foundProperty ? "Dossier found." : "No property found for that address."
+        });
 
     } catch (error: any) {
-        console.error('[ElevenLabs Tools Endpoint] Error handling request:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        console.error("Webhook Internal Error:", error);
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 }
