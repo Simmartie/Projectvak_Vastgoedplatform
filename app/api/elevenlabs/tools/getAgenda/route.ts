@@ -1,59 +1,51 @@
-import { NextResponse } from 'next/server';
-import { getAgenda } from '@/services/supabaseTools/getAgenda';
+import { createClient } from '@supabase/supabase-js'
 
-// Extract the webhook secret securely from environment variables
-const ELEVENLABS_WEBHOOK_SECRET = process.env.ELEVENLABS_WEBHOOK_SECRET;
+// Initialize Supabase. Ensure SUPABASE_SERVICE_KEY is set in your .env.local
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey)
 
 export async function POST(req: Request) {
     try {
-        // ---------------------------------------------------------------------------
-        // Step 1: Security check - Verify Authorization Header (x-api-key) test
-        // ---------------------------------------------------------------------------
-        const authHeader = req.headers.get('x-api-key');
-        const secret = process.env.ELEVENLABS_WEBHOOK_SECRET;
-
-        if (!secret) {
-            console.warn('ELEVENLABS_WEBHOOK_SECRET is not set in environment variables');
-        }
-
-        if (authHeader !== ELEVENLABS_WEBHOOK_SECRET) {
-            return NextResponse.json(
-                { error: 'Unauthorized. Invalid or missing Authorization header.' },
-                { status: 401 }
-            );
-        }
-
-        // ---------------------------------------------------------------------------
-        // Step 2: Extract payload safely
-        // ---------------------------------------------------------------------------
+        // 1. Get the parameters ElevenLabs sent (e.g., a specific date)
         const body = await req.json();
-        console.log("Payload from ElevenLabs (getAgenda):", body);
+        // ElevenLabs could send `date` or `startDate`.
+        const targetDate = body.date || body.startDate;
 
-        // Required parameters
-        const { startDate, endDate } = body;
+        console.log("\n=== ELEVENLABS WEBHOOK CALL ===")
+        console.log("Full AI Payload:", body)
+        console.log("Parsed Target Date:", targetDate)
 
-        if (!startDate || !endDate) {
-            return NextResponse.json(
-                { error: 'Bad Request. Missing startDate or endDate in request body.' },
-                { status: 400 }
-            );
+        if (!targetDate) {
+            console.log("Error: The AI did not provide a date parameter.")
+            return Response.json({
+                success: false,
+                error: "You must supply a 'date' parameter to search the agenda."
+            }, { status: 400 });
         }
 
-        // ---------------------------------------------------------------------------
-        // Step 3: Fetch the data from Supabase
-        // ---------------------------------------------------------------------------
-        const result = await getAgenda({ startDate, endDate });
+        // 2. Query your Supabase database for the agenda
+        const { data: agendaItems, error } = await supabase
+            .from('appointments') // Matching actual schema
+            .select('*')
+            .eq('date', targetDate);
 
-        console.log("Result from DB (getAgenda):", result);
+        if (error) {
+            console.error("Supabase Error:", error)
+            throw error;
+        }
 
-        // Send the data back to ElevenLabs
-        return NextResponse.json(result);
+        console.log("Data found:", agendaItems?.length, "items")
+        console.log("===============================\n")
+
+        // 3. Send the agenda back to ElevenLabs
+        // The AI will read this JSON and read the agenda out loud to the user
+        return Response.json({
+            success: true,
+            agenda: agendaItems
+        });
 
     } catch (error: any) {
-        console.error('[ElevenLabs Tools Endpoint - getAgenda] Error handling request:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+        return Response.json({ success: false, error: error.message }, { status: 500 });
     }
 }

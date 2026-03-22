@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/client'
 import { NeighborhoodInfo, School, SportsClub, Transport, Event, Visit, Bid } from './properties-types'
+import { processPastAppointments } from './agenda'
 
 export interface Property {
   id: string
@@ -118,6 +119,7 @@ function mapDatabaseBid(row: any): Bid {
 }
 
 export const getProperties = async (): Promise<Property[]> => {
+  await processPastAppointments()
   const supabase = createClient()
   const { data, error } = await supabase
     .from('properties')
@@ -146,6 +148,8 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
   if (!id || id === 'null' || id === 'undefined') {
     return undefined
   }
+
+  await processPastAppointments()
 
   const supabase = createClient()
 
@@ -179,6 +183,7 @@ export const getPropertyById = async (id: string): Promise<Property | undefined>
 }
 
 export const getPropertiesBySeller = async (sellerId: string): Promise<Property[]> => {
+  await processPastAppointments()
   const supabase = createClient()
 
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sellerId)
@@ -266,6 +271,48 @@ export async function updateProperty(updatedProperty: Partial<Property> & { id: 
 
   if (error) {
     console.error('Error updating property:', error)
+    throw new Error(error.message)
+  }
+}
+
+export async function updateVisit(visitId: string, updates: Partial<Visit>): Promise<void> {
+  const supabase = createClient()
+
+  const updateData: any = {}
+  if (updates.feedback !== undefined) updateData.feedback = updates.feedback
+  if (updates.rating !== undefined) updateData.rating = updates.rating
+  if (updates.feedback_suggestion !== undefined) updateData.feedback_suggestion = updates.feedback_suggestion
+  if (updates.rating_suggestion !== undefined) updateData.rating_suggestion = updates.rating_suggestion
+
+  const { error } = await supabase
+    .from('visits')
+    .update(updateData)
+    .eq('id', visitId)
+
+  if (error) {
+    console.error('Error updating visit:', error)
+    throw new Error(error.message)
+  }
+}
+
+export async function updateBid(bidId: string, updates: Partial<Bid>): Promise<void> {
+  const supabase = createClient()
+
+  const updateData: any = {}
+  if (updates.amount !== undefined) updateData.amount = updates.amount
+  if (updates.status !== undefined) updateData.status = updates.status
+  if (updates.comments !== undefined) updateData.comments = updates.comments
+  if (updates.amount_suggestion !== undefined) updateData.amount_suggestion = updates.amount_suggestion
+  if (updates.status_suggestion !== undefined) updateData.status_suggestion = updates.status_suggestion
+  if (updates.comment_suggestion !== undefined) updateData.comment_suggestion = updates.comment_suggestion
+
+  const { error } = await supabase
+    .from('bids')
+    .update(updateData)
+    .eq('id', bidId)
+
+  if (error) {
+    console.error('Error updating bid:', error)
     throw new Error(error.message)
   }
 }

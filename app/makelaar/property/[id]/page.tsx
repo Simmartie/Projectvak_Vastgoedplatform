@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getCurrentUser, MOCK_USERS } from '@/lib/auth'
-import { getPropertyById, Property } from '@/lib/properties'
+import { getPropertyById, Property, updateVisit, updateBid } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft, Heart } from 'lucide-react'
+import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft, Heart, Check, X } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
@@ -39,11 +39,14 @@ export default function PropertyDetailPage() {
   }, [router, params.id])
 
   useEffect(() => {
-    if (property && typeof window !== 'undefined' && window.location.hash === '#chat') {
+    if (property && typeof window !== 'undefined') {
       setTimeout(() => {
-        const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
-        if (chatCard) {
-          chatCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (window.location.hash === '#chat') {
+          const chatCard = document.querySelector('[data-chat-card]') as HTMLElement;
+          if (chatCard) chatCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (window.location.hash === '#suggesties') {
+          const suggestiesCard = document.getElementById('suggesties') as HTMLElement;
+          if (suggestiesCard) suggestiesCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       }, 100);
     }
@@ -53,11 +56,111 @@ export default function PropertyDetailPage() {
     return <div>Loading...</div>
   }
 
+  const handleAcceptSuggestion = async (visit: any) => {
+    try {
+      if (!visit.feedback_suggestion && !visit.rating_suggestion) return;
+
+      const updates: any = {
+        feedback: visit.feedback_suggestion || visit.feedback,
+        rating: visit.rating_suggestion || visit.rating,
+        feedback_suggestion: null,
+        rating_suggestion: null
+      };
+
+      await updateVisit(visit.id, updates);
+
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          visits: prev.visits.map(v => v.id === visit.id ? { ...v, ...updates } as any : v)
+        };
+      });
+    } catch (error) {
+      console.error("Failed to accept suggestion", error);
+    }
+  }
+
+  const handleRejectSuggestion = async (visit: any) => {
+    try {
+      const updates: any = {
+        feedback_suggestion: null,
+        rating_suggestion: null
+      };
+
+      await updateVisit(visit.id, updates);
+
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          visits: prev.visits.map(v => v.id === visit.id ? { ...v, ...updates } as any : v)
+        };
+      });
+    } catch (error) {
+      console.error("Failed to reject suggestion", error);
+    }
+  }
+
+  const handleAcceptBidSuggestion = async (bid: any) => {
+    try {
+      if (!bid.amount_suggestion && !bid.status_suggestion && !bid.comment_suggestion) return;
+
+      const updates: any = {
+        amount: bid.amount_suggestion ?? bid.amount,
+        status: bid.status_suggestion ?? bid.status,
+        comments: bid.comment_suggestion ?? bid.comments,
+        amount_suggestion: null,
+        status_suggestion: null,
+        comment_suggestion: null
+      };
+
+      await updateBid(bid.id, updates);
+
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bids: prev.bids.map(b => b.id === bid.id ? { ...b, ...updates } as any : b)
+        };
+      });
+    } catch (error) {
+      console.error('Failed to accept bid suggestion', error);
+    }
+  }
+
+  const handleRejectBidSuggestion = async (bid: any) => {
+    try {
+      const updates: any = {
+        amount_suggestion: null,
+        status_suggestion: null,
+        comment_suggestion: null
+      };
+
+      await updateBid(bid.id, updates);
+
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bids: prev.bids.map(b => b.id === bid.id ? { ...b, ...updates } as any : b)
+        };
+      });
+    } catch (error) {
+      console.error('Failed to reject bid suggestion', error);
+    }
+  }
+
   const avgBidAmount = property.bids.length > 0
     ? property.bids.reduce((sum, bid) => sum + bid.amount, 0) / property.bids.length
     : 0
 
   const seller = MOCK_USERS.find(u => u.id === property.sellerId)
+
+  const visibleVisits = property.visits.filter(v => 
+    (v.feedback && v.rating) || 
+    (v.feedback_suggestion && v.rating_suggestion)
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -191,23 +294,25 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="suggesties">
               <CardHeader>
-                <CardTitle>Bezichtigingen ({property.visits.length})</CardTitle>
+                <CardTitle>Bezichtigingen ({visibleVisits.length})</CardTitle>
                 <CardDescription>
                   Overzicht van alle bezichtigingen met feedback
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {property.visits.length === 0 ? (
+                {visibleVisits.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
                     Nog geen bezichtigingen gepland
                   </p>
                 ) : (
-                  property.visits.map((visit) => (
+                  visibleVisits.map((visit) => {
+                    const hasSuggestion = visit.feedback_suggestion || visit.rating_suggestion;
+                    return (
                     <div
                       key={visit.id}
-                      className="border rounded-lg p-4 space-y-2"
+                      className={`border rounded-lg p-4 space-y-2 ${hasSuggestion ? 'border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50' : ''}`}
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -216,25 +321,45 @@ export default function PropertyDetailPage() {
                             {visit.date ? new Date(visit.date).toLocaleDateString('nl-NL') : 'Onbekende datum'}
                           </p>
                         </div>
-                        {visit.rating && (
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="font-medium">{visit.rating}/5</span>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-4">
+                          {(visit.rating || visit.rating_suggestion) && (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <span className="font-medium">{visit.rating_suggestion || visit.rating}/5</span>
+                              {hasSuggestion && visit.rating_suggestion && <span className="text-xs text-amber-600 dark:text-amber-400 ml-1">(Suggestie)</span>}
+                            </div>
+                          )}
+                          {hasSuggestion && (
+                            <div className="flex items-center gap-2">
+                              <Button size="icon" variant="outline" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200" onClick={() => handleAcceptSuggestion(visit)}>
+                                <Check className="h-4 w-4" />
+                              </Button>
+                              <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleRejectSuggestion(visit)}>
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      {visit.feedback && (
-                        <p className="text-sm text-muted-foreground">
-                          "{visit.feedback}"
-                        </p>
+                      {(visit.feedback || visit.feedback_suggestion) && (
+                        <div className="space-y-1 mt-2">
+                          {visit.feedback_suggestion ? (
+                            <div>
+                              <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">Voorgestelde feedback:</p>
+                              <p className="text-sm text-amber-900 dark:text-amber-100 italic">"{visit.feedback_suggestion}"</p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">"{visit.feedback}"</p>
+                          )}
+                        </div>
                       )}
                     </div>
-                  ))
+                  )})
                 )}
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="biedingen-suggesties">
               <CardHeader>
                 <CardTitle>Biedingen ({property.bids.length})</CardTitle>
                 <CardDescription>
@@ -247,40 +372,64 @@ export default function PropertyDetailPage() {
                     Nog geen biedingen ontvangen
                   </p>
                 ) : (
-                  property.bids.map((bid) => (
-                    <div
-                      key={bid.id}
-                      className="border rounded-lg p-4 space-y-2"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-medium">{bid.buyerName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {bid.date ? new Date(bid.date).toLocaleDateString('nl-NL') : ((bid as any).created_at ? new Date((bid as any).created_at).toLocaleDateString('nl-NL') : 'Onbekende datum')}
-                          </p>
+                  property.bids.map((bid) => {
+                    const hasSuggestion = bid.amount_suggestion || bid.status_suggestion || bid.comment_suggestion;
+                    return (
+                      <div
+                        key={bid.id}
+                        className={`border rounded-lg p-4 space-y-2 ${hasSuggestion ? 'border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50' : ''}`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium">{bid.buyerName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {bid.date ? new Date(bid.date).toLocaleDateString('nl-NL') : ((bid as any).created_at ? new Date((bid as any).created_at).toLocaleDateString('nl-NL') : 'Onbekende datum')}
+                            </p>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-primary">
+                                €{(bid.amount_suggestion ?? bid.amount).toLocaleString('nl-NL')}
+                                {hasSuggestion && bid.amount_suggestion && <span className="text-xs text-amber-600 dark:text-amber-400 ml-2">(Suggestie)</span>}
+                              </p>
+                              <Badge variant={
+                                (bid.status_suggestion ?? bid.status) === 'accepted' ? 'default' :
+                                  (bid.status_suggestion ?? bid.status) === 'rejected' ? 'destructive' :
+                                    'secondary'
+                              }>
+                                {(bid.status_suggestion ?? bid.status) === 'pending' ? 'In behandeling' :
+                                 (bid.status_suggestion ?? bid.status) === 'accepted' ? 'Geaccepteerd' :
+                                 'Afgewezen'}
+                                {hasSuggestion && bid.status_suggestion && <span className="ml-1 opacity-75">(Suggestie)</span>}
+                              </Badge>
+                            </div>
+                            {hasSuggestion && (
+                              <div className="flex items-center gap-2">
+                                <Button size="icon" variant="outline" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200" onClick={() => handleAcceptBidSuggestion(bid)}>
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleRejectBidSuggestion(bid)}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-primary">
-                            €{bid.amount.toLocaleString('nl-NL')}
-                          </p>
-                          <Badge variant={
-                            bid.status === 'accepted' ? 'default' :
-                              bid.status === 'rejected' ? 'destructive' :
-                                'secondary'
-                          }>
-                            {bid.status === 'pending' ? 'In behandeling' :
-                             bid.status === 'accepted' ? 'Geaccepteerd' :
-                             'Afgewezen'}
-                          </Badge>
-                        </div>
+                        {(bid.comments || bid.comment_suggestion) && (
+                          <div className="space-y-1 mt-2">
+                            {bid.comment_suggestion ? (
+                              <div>
+                                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">Voorgesteld commentaar:</p>
+                                <p className="text-sm text-amber-900 dark:text-amber-100 italic">"{bid.comment_suggestion}"</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">{bid.comments}</p>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {bid.comments && (
-                        <p className="text-sm text-muted-foreground">
-                          {bid.comments}
-                        </p>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </CardContent>
             </Card>
@@ -398,7 +547,7 @@ export default function PropertyDetailPage() {
                     <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Bezichtigingen</span>
                   </div>
-                  <span className="font-bold">{property.visits.length}</span>
+                  <span className="font-bold">{visibleVisits.length}</span>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-muted rounded-lg">

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart } from 'lucide-react'
+import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MakelaarDashboard() {
@@ -64,6 +64,14 @@ export default function MakelaarDashboard() {
     const matchesPhase = filterPhase === 'all' || property.phase === filterPhase
 
     return matchesSearch && matchesType && matchesPhase
+  }).sort((a, b) => {
+    const aHas = a.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                  a.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
+    const bHas = b.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                  b.bids?.some(b2 => b2.amount_suggestion || b2.status_suggestion || b2.comment_suggestion)
+    if (aHas && !bHas) return -1
+    if (!aHas && bHas) return 1
+    return 0
   })
 
   const totalViews = filteredProperties.reduce((sum, p) => sum + p.views, 0)
@@ -267,8 +275,17 @@ export default function MakelaarDashboard() {
                     <div className="flex-1 space-y-3">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="font-semibold text-lg mb-1">
+                          <h3 className="font-semibold text-lg mb-1 flex flex-wrap items-center gap-2">
                             {property.address}
+                            {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                              property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
+                              <Link href={`/makelaar/property/${property.id}#suggesties`}>
+                                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                  Suggestie beoordelen
+                                </Badge>
+                              </Link>
+                            )}
                           </h3>
                           <div className="flex items-center text-sm text-muted-foreground">
                             <MapPin className="h-4 w-4 mr-1" />
@@ -359,8 +376,17 @@ export default function MakelaarDashboard() {
                     <div className="flex-1 space-y-3">
                       <div className="flex items-start justify-between gap-4">
                         <div>
-                          <h3 className="font-semibold text-lg mb-1">
+                          <h3 className="font-semibold text-lg mb-1 flex flex-wrap items-center gap-2">
                             {property.address}
+                            {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                              property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
+                              <Link href={`/makelaar/property/${property.id}#suggesties`}>
+                                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
+                                  <AlertCircle className="h-3 w-3 mr-1" />
+                                  Suggestie beoordelen
+                                </Badge>
+                              </Link>
+                            )}
                           </h3>
                           <div className="flex items-center text-sm text-muted-foreground">
                             <MapPin className="h-4 w-4 mr-1" />
@@ -451,8 +477,17 @@ export default function MakelaarDashboard() {
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <div>
-                            <h3 className="font-semibold text-lg mb-1">
+                            <h3 className="font-semibold text-lg mb-1 flex flex-wrap items-center gap-2">
                               {property.address}
+                              {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                                property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
+                                <Link href={`/makelaar/property/${property.id}#suggesties`}>
+                                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    Suggestie beoordelen
+                                  </Badge>
+                                </Link>
+                              )}
                             </h3>
                             <div className="flex items-center text-sm text-muted-foreground">
                               <MapPin className="h-4 w-4 mr-1" />

@@ -84,7 +84,7 @@ Your project is live at:
 
 ## 🎯 Features
 
-- ✅ Role-based authentication (Makelaar, Verkoper, Koper)
+- ✅ Role-based authentication (Makelaar, Verkoper en Koper)
 - ✅ Property search en filter functionaliteit
 - ✅ Interactieve kaartweergave met afstand berekening
 - ✅ AI-powered chat assistent voor property vragen
