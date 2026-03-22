@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getCurrentUser, MOCK_USERS } from '@/lib/auth'
-import { getPropertyById, Property, updateVisit } from '@/lib/properties'
+import { getPropertyById, Property, updateVisit, updateBid } from '@/lib/properties'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -99,6 +99,55 @@ export default function PropertyDetailPage() {
       });
     } catch (error) {
       console.error("Failed to reject suggestion", error);
+    }
+  }
+
+  const handleAcceptBidSuggestion = async (bid: any) => {
+    try {
+      if (!bid.amount_suggestion && !bid.status_suggestion && !bid.comment_suggestion) return;
+
+      const updates: any = {
+        amount: bid.amount_suggestion ?? bid.amount,
+        status: bid.status_suggestion ?? bid.status,
+        comments: bid.comment_suggestion ?? bid.comments,
+        amount_suggestion: null,
+        status_suggestion: null,
+        comment_suggestion: null
+      };
+
+      await updateBid(bid.id, updates);
+
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bids: prev.bids.map(b => b.id === bid.id ? { ...b, ...updates } as any : b)
+        };
+      });
+    } catch (error) {
+      console.error('Failed to accept bid suggestion', error);
+    }
+  }
+
+  const handleRejectBidSuggestion = async (bid: any) => {
+    try {
+      const updates: any = {
+        amount_suggestion: null,
+        status_suggestion: null,
+        comment_suggestion: null
+      };
+
+      await updateBid(bid.id, updates);
+
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bids: prev.bids.map(b => b.id === bid.id ? { ...b, ...updates } as any : b)
+        };
+      });
+    } catch (error) {
+      console.error('Failed to reject bid suggestion', error);
     }
   }
 
@@ -310,7 +359,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card id="biedingen-suggesties">
               <CardHeader>
                 <CardTitle>Biedingen ({property.bids.length})</CardTitle>
                 <CardDescription>
@@ -323,40 +372,64 @@ export default function PropertyDetailPage() {
                     Nog geen biedingen ontvangen
                   </p>
                 ) : (
-                  property.bids.map((bid) => (
-                    <div
-                      key={bid.id}
-                      className="border rounded-lg p-4 space-y-2"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-medium">{bid.buyerName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {bid.date ? new Date(bid.date).toLocaleDateString('nl-NL') : ((bid as any).created_at ? new Date((bid as any).created_at).toLocaleDateString('nl-NL') : 'Onbekende datum')}
-                          </p>
+                  property.bids.map((bid) => {
+                    const hasSuggestion = bid.amount_suggestion || bid.status_suggestion || bid.comment_suggestion;
+                    return (
+                      <div
+                        key={bid.id}
+                        className={`border rounded-lg p-4 space-y-2 ${hasSuggestion ? 'border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900/50' : ''}`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium">{bid.buyerName}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {bid.date ? new Date(bid.date).toLocaleDateString('nl-NL') : ((bid as any).created_at ? new Date((bid as any).created_at).toLocaleDateString('nl-NL') : 'Onbekende datum')}
+                            </p>
+                          </div>
+                          <div className="flex items-start gap-4">
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-primary">
+                                €{(bid.amount_suggestion ?? bid.amount).toLocaleString('nl-NL')}
+                                {hasSuggestion && bid.amount_suggestion && <span className="text-xs text-amber-600 dark:text-amber-400 ml-2">(Suggestie)</span>}
+                              </p>
+                              <Badge variant={
+                                (bid.status_suggestion ?? bid.status) === 'accepted' ? 'default' :
+                                  (bid.status_suggestion ?? bid.status) === 'rejected' ? 'destructive' :
+                                    'secondary'
+                              }>
+                                {(bid.status_suggestion ?? bid.status) === 'pending' ? 'In behandeling' :
+                                 (bid.status_suggestion ?? bid.status) === 'accepted' ? 'Geaccepteerd' :
+                                 'Afgewezen'}
+                                {hasSuggestion && bid.status_suggestion && <span className="ml-1 opacity-75">(Suggestie)</span>}
+                              </Badge>
+                            </div>
+                            {hasSuggestion && (
+                              <div className="flex items-center gap-2">
+                                <Button size="icon" variant="outline" className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200" onClick={() => handleAcceptBidSuggestion(bid)}>
+                                  <Check className="h-4 w-4" />
+                                </Button>
+                                <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleRejectBidSuggestion(bid)}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-primary">
-                            €{bid.amount.toLocaleString('nl-NL')}
-                          </p>
-                          <Badge variant={
-                            bid.status === 'accepted' ? 'default' :
-                              bid.status === 'rejected' ? 'destructive' :
-                                'secondary'
-                          }>
-                            {bid.status === 'pending' ? 'In behandeling' :
-                             bid.status === 'accepted' ? 'Geaccepteerd' :
-                             'Afgewezen'}
-                          </Badge>
-                        </div>
+                        {(bid.comments || bid.comment_suggestion) && (
+                          <div className="space-y-1 mt-2">
+                            {bid.comment_suggestion ? (
+                              <div>
+                                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mb-1">Voorgesteld commentaar:</p>
+                                <p className="text-sm text-amber-900 dark:text-amber-100 italic">"{bid.comment_suggestion}"</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">{bid.comments}</p>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      {bid.comments && (
-                        <p className="text-sm text-muted-foreground">
-                          {bid.comments}
-                        </p>
-                      )}
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </CardContent>
             </Card>
