@@ -159,7 +159,7 @@ export default function PropertyDetailPage() {
 
   const visibleVisits = property.visits.filter(v => 
     (v.feedback && v.rating) || 
-    (v.feedback_suggestion && v.rating_suggestion)
+    (v.feedback_suggestion || v.rating_suggestion)
   )
 
   return (
