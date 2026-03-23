@@ -65,8 +65,10 @@ export default function MakelaarDashboard() {
 
     return matchesSearch && matchesType && matchesPhase
   }).sort((a, b) => {
-    const aHas = a.visits?.some(v => v.feedback_suggestion || v.rating_suggestion)
-    const bHas = b.visits?.some(v => v.feedback_suggestion || v.rating_suggestion)
+    const aHas = a.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                  a.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
+    const bHas = b.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                  b.bids?.some(b2 => b2.amount_suggestion || b2.status_suggestion || b2.comment_suggestion)
     if (aHas && !bHas) return -1
     if (!aHas && bHas) return 1
     return 0
@@ -275,7 +277,8 @@ export default function MakelaarDashboard() {
                         <div>
                           <h3 className="font-semibold text-lg mb-1 flex flex-wrap items-center gap-2">
                             {property.address}
-                            {property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) && (
+                            {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                              property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
                               <Link href={`/makelaar/property/${property.id}#suggesties`}>
                                 <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
                                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -375,7 +378,8 @@ export default function MakelaarDashboard() {
                         <div>
                           <h3 className="font-semibold text-lg mb-1 flex flex-wrap items-center gap-2">
                             {property.address}
-                            {property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) && (
+                            {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                              property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
                               <Link href={`/makelaar/property/${property.id}#suggesties`}>
                                 <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
                                   <AlertCircle className="h-3 w-3 mr-1" />
@@ -475,7 +479,8 @@ export default function MakelaarDashboard() {
                           <div>
                             <h3 className="font-semibold text-lg mb-1 flex flex-wrap items-center gap-2">
                               {property.address}
-                              {property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) && (
+                              {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
+                                property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
                                 <Link href={`/makelaar/property/${property.id}#suggesties`}>
                                   <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
                                     <AlertCircle className="h-3 w-3 mr-1" />

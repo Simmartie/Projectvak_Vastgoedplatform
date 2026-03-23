@@ -295,6 +295,28 @@ export async function updateVisit(visitId: string, updates: Partial<Visit>): Pro
   }
 }
 
+export async function updateBid(bidId: string, updates: Partial<Bid>): Promise<void> {
+  const supabase = createClient()
+
+  const updateData: any = {}
+  if (updates.amount !== undefined) updateData.amount = updates.amount
+  if (updates.status !== undefined) updateData.status = updates.status
+  if (updates.comments !== undefined) updateData.comments = updates.comments
+  if (updates.amount_suggestion !== undefined) updateData.amount_suggestion = updates.amount_suggestion
+  if (updates.status_suggestion !== undefined) updateData.status_suggestion = updates.status_suggestion
+  if (updates.comment_suggestion !== undefined) updateData.comment_suggestion = updates.comment_suggestion
+
+  const { error } = await supabase
+    .from('bids')
+    .update(updateData)
+    .eq('id', bidId)
+
+  if (error) {
+    console.error('Error updating bid:', error)
+    throw new Error(error.message)
+  }
+}
+
 export function calculateDistance(
   lat1: number,
   lon1: number,

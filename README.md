@@ -91,7 +91,7 @@ Your project is live at:
 - ✅ Property detailpagina's met buurtinformatie
 - ✅ Biedingen en bezichtigingen tracking
 - ✅ Responsive design met Tailwind CSS
-- ✅ Server-side rendering (SSR) en Static Generation (SSG)
+- ✅ Server-side rendering (SSR) & Static Generation (SSG)
 
 ## 📖 Development
 
