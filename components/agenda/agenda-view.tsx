@@ -355,12 +355,12 @@ export function AgendaView({ userId: propUserId }: AgendaViewProps) {
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            {isMakelaar && height > 30 && daysToShow === 7 && (
+                                                            {isMakelaar && daysToShow === 7 && (
                                                                 <Button
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     onClick={(e) => handleDelete(appointment.id, e)}
-                                                                    className={`h-5 w-5 sm:h-6 sm:w-6 shrink-0 ${property ? 'hover:bg-blue-200 text-blue-900 dark:hover:bg-blue-800 dark:text-blue-100' : 'hover:bg-emerald-200 text-emerald-900 dark:hover:bg-emerald-800 dark:text-emerald-100'
+                                                                    className={`h-5 w-5 sm:h-6 sm:w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ${property ? 'hover:bg-blue-200 text-blue-900 dark:hover:bg-blue-800 dark:text-blue-100' : 'hover:bg-emerald-200 text-emerald-900 dark:hover:bg-emerald-800 dark:text-emerald-100'
                                                                         }`}
                                                                 >
                                                                     <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />

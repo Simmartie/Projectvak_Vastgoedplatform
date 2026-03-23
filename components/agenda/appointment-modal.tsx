@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Trash2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
@@ -24,7 +24,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
-import { Appointment, addAppointment, updateAppointment } from '@/lib/agenda'
+import { Appointment, addAppointment, updateAppointment, deleteAppointment } from '@/lib/agenda'
 import { getProperties, Property } from '@/lib/properties'
 import { MOCK_USERS, User } from '@/lib/auth'
 
@@ -139,6 +139,22 @@ export function AppointmentModal({
             // Ideally show a toast notification here
         } finally {
             setIsSaving(false)
+        }
+    }
+
+    const handleDelete = async () => {
+        if (!appointment?.id) return
+        if (confirm('Weet u zeker dat u deze afspraak wilt verwijderen?')) {
+            setIsSaving(true)
+            try {
+                await deleteAppointment(appointment.id)
+                onSave()
+                onClose()
+            } catch (error) {
+                console.error("Failed to delete appointment", error)
+            } finally {
+                setIsSaving(false)
+            }
         }
     }
 
@@ -292,13 +308,27 @@ export function AppointmentModal({
                         <p className="text-sm text-destructive">{error}</p>
                     )}
 
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
-                            {isMakelaar ? 'Annuleren' : 'Sluiten'}
-                        </Button>
-                        {isMakelaar && <Button type="submit" disabled={isSaving}>
-                            {isSaving ? 'Opslaan...' : 'Opslaan'}
-                        </Button>}
+                    <DialogFooter className="flex-col sm:flex-row gap-2">
+                        {isEditing && isMakelaar && (
+                            <Button 
+                                type="button" 
+                                variant="destructive" 
+                                onClick={handleDelete} 
+                                disabled={isSaving}
+                                className="sm:mr-auto"
+                            >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Verwijderen
+                            </Button>
+                        )}
+                        <div className="flex gap-2 justify-end w-full sm:w-auto">
+                            <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
+                                {isMakelaar ? 'Annuleren' : 'Sluiten'}
+                            </Button>
+                            {isMakelaar && <Button type="submit" disabled={isSaving}>
+                                {isSaving ? 'Opslaan...' : 'Opslaan'}
+                            </Button>}
+                        </div>
                     </DialogFooter>
                 </form>
             </DialogContent>
