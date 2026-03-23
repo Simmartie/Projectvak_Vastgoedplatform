@@ -40,9 +40,6 @@ export default function RootLayout({
       <body className={`font-sans antialiased`}>
         {children}
         <Analytics />
-        {/* @ts-expect-error - elevenlabs-convai is a custom web component */}
-        <elevenlabs-convai agent-id="agent_2801kjykbap2e8pr6s76tpcw9pms"></elevenlabs-convai>
-        <Script src="https://unpkg.com/@elevenlabs/convai-widget-embed" strategy="afterInteractive" />
       </body>
     </html>
   )

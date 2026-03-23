@@ -89,7 +89,7 @@ export function Header() {
 
       {/* Raw ElevenLabs Widget Component */}
       {isMounted && user?.role === 'makelaar' && (
-        React.createElement('elevenlabs-convai', { 'agent-id': 'agent_9501kkpnxn7sefq9w11v25w80xty' })
+        React.createElement('elevenlabs-convai', { 'agent-id': 'agent_2801kjykbap2e8pr6s76tpcw9pms' })
       )}
     </>
   )

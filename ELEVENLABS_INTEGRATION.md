@@ -17,7 +17,7 @@ This document provides a comprehensive overview of how the ElevenLabs voice assi
 ### Frontend Widget Injection
 **File:** `components/header.tsx`
 - The custom React AI button was completely removed to improve stability.
-- Replaced with the native HTML widget component `<elevenlabs-convai agent-id="agent_9501kkpnxn7sefq9w11v25w80xty">`.
+- Replaced with the native HTML widget component `<elevenlabs-convai agent-id="agent_2801kjykbap2e8pr6s76tpcw9pms">`.
 - The widget is injected securely into the DOM via a `useEffect` hook that mounts the required external script (`https://unpkg.com/@elevenlabs/convai-widget-embed`) exclusively when a user with the `role === 'makelaar'` logs in.
 
 ### Webhook 1: Get Agenda
