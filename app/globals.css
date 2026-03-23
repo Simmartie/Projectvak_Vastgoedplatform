@@ -84,3 +84,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Reposition ElevenLabs widget on mobile to avoid blocking buttons */
+@media (max-width: 768px) {
+  elevenlabs-convai {
+    right: 1rem !important;
+    left: auto !important;
+    bottom: 1rem !important;
+  }
+}
+

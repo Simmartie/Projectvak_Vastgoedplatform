@@ -83,7 +83,7 @@ export default function MakelaarDashboard() {
     <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 pt-8 pb-48 md:pb-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold mb-2">Dashboard Overzicht</h2>
