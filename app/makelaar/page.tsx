@@ -84,11 +84,25 @@ export default function MakelaarDashboard() {
       <Header />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold mb-2">Dashboard Overzicht</h2>
-          <p className="text-muted-foreground">
-            Beheer alle panden en dossiers
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Dashboard Overzicht</h2>
+            <p className="text-muted-foreground">
+              Beheer alle panden en dossiers
+            </p>
+          </div>
+          {properties.some(p => 
+            p.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) || 
+            p.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
+          ) && (
+            <Link href="/makelaar/suggestions">
+              <Button className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-lg">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Bekijk alle suggesties
+                <span className="ml-2 flex h-2 w-2 rounded-full bg-white animate-pulse" />
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Mobiele versie: 1 overkoepelend vak */}
