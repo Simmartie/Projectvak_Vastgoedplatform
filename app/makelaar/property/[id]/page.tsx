@@ -14,6 +14,12 @@ import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
 import { PropertyImageCarousel } from '@/components/properties/property-image-carousel'
+import { EditBidModal } from '@/components/properties/edit-bid-modal'
+import { EditVisitModal } from '@/components/properties/edit-visit-modal'
+import { AddBidModal } from '@/components/properties/add-bid-modal'
+import { AddVisitModal } from '@/components/properties/add-visit-modal'
+import { Pencil, Trash2, Plus } from 'lucide-react'
+import { deleteBid, deleteVisit } from '@/lib/properties'
 
 export default function PropertyDetailPage() {
   const router = useRouter()
@@ -21,6 +27,16 @@ export default function PropertyDetailPage() {
   const [property, setProperty] = useState<Property | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+
+  // Edit Bids & Visits state
+  const [isEditBidModalOpen, setIsEditBidModalOpen] = useState(false)
+  const [selectedBid, setSelectedBid] = useState<any>(null)
+  const [isEditVisitModalOpen, setIsEditVisitModalOpen] = useState(false)
+  const [selectedVisit, setSelectedVisit] = useState<any>(null)
+
+  // Add Bids & Visits state
+  const [isAddBidModalOpen, setIsAddBidModalOpen] = useState(false)
+  const [isAddVisitModalOpen, setIsAddVisitModalOpen] = useState(false)
 
   useEffect(() => {
     const user = getCurrentUser()
@@ -148,6 +164,50 @@ export default function PropertyDetailPage() {
       });
     } catch (error) {
       console.error('Failed to reject bid suggestion', error);
+    }
+  }
+
+  const handleEditBid = (bid: any) => {
+    setSelectedBid(bid);
+    setIsEditBidModalOpen(true);
+  }
+
+  const handleEditVisit = (visit: any) => {
+    setSelectedVisit(visit);
+    setIsEditVisitModalOpen(true);
+  }
+
+  const handleDeleteBid = async (bidId: string) => {
+    if (!window.confirm('Weet je zeker dat je dit bod wilt verwijderen?')) return;
+    try {
+      await deleteBid(bidId);
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bids: prev.bids.filter(b => b.id !== bidId)
+        };
+      });
+    } catch (error) {
+      console.error('Failed to delete bid', error);
+      alert('Er is een fout opgetreden bij het verwijderen van het bod.');
+    }
+  }
+
+  const handleDeleteVisit = async (visitId: string) => {
+    if (!window.confirm('Weet je zeker dat je deze bezichtiging wilt verwijderen?')) return;
+    try {
+      await deleteVisit(visitId);
+      setProperty(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          visits: prev.visits.filter(v => v.id !== visitId)
+        };
+      });
+    } catch (error) {
+      console.error('Failed to delete visit', error);
+      alert('Er is een fout opgetreden bij het verwijderen van de bezichtiging.');
     }
   }
 
@@ -295,11 +355,17 @@ export default function PropertyDetailPage() {
             </Card>
 
             <Card id="suggesties">
-              <CardHeader>
-                <CardTitle>Bezichtigingen ({visibleVisits.length})</CardTitle>
-                <CardDescription>
-                  Overzicht van alle bezichtigingen met feedback
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Bezichtigingen ({visibleVisits.length})</CardTitle>
+                  <CardDescription>
+                    Overzicht van alle bezichtigingen met feedback
+                  </CardDescription>
+                </div>
+                <Button size="sm" onClick={() => setIsAddVisitModalOpen(true)} className="gap-1">
+                  <Plus className="h-4 w-4" />
+                  Toevoegen
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {visibleVisits.length === 0 ? (
@@ -339,6 +405,26 @@ export default function PropertyDetailPage() {
                               </Button>
                             </div>
                           )}
+                          {!hasSuggestion && (
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => handleEditVisit(visit)}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleDeleteVisit(visit.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                       {(visit.feedback || visit.feedback_suggestion) && (
@@ -360,11 +446,17 @@ export default function PropertyDetailPage() {
             </Card>
 
             <Card id="biedingen-suggesties">
-              <CardHeader>
-                <CardTitle>Biedingen ({property.bids.length})</CardTitle>
-                <CardDescription>
-                  Alle ontvangen biedingen voor dit pand
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle>Biedingen ({property.bids.length})</CardTitle>
+                  <CardDescription>
+                    Alle ontvangen biedingen voor dit pand
+                  </CardDescription>
+                </div>
+                <Button size="sm" onClick={() => setIsAddBidModalOpen(true)} className="gap-1">
+                  <Plus className="h-4 w-4" />
+                  Toevoegen
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
                 {property.bids.length === 0 ? (
@@ -410,6 +502,26 @@ export default function PropertyDetailPage() {
                                 </Button>
                                 <Button size="icon" variant="outline" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200" onClick={() => handleRejectBidSuggestion(bid)}>
                                   <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                            {!hasSuggestion && (
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                  onClick={() => handleEditBid(bid)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                                  onClick={() => handleDeleteBid(bid.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </div>
                             )}
@@ -635,6 +747,76 @@ export default function PropertyDetailPage() {
           onClose={() => setIsEditModalOpen(false)}
           property={property}
           onSave={setProperty}
+        />
+
+        {selectedBid && (
+          <EditBidModal
+            isOpen={isEditBidModalOpen}
+            onClose={() => {
+              setIsEditBidModalOpen(false)
+              setSelectedBid(null)
+            }}
+            bid={selectedBid}
+            onSave={(updatedBid) => {
+              setProperty(prev => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  bids: prev.bids.map(b => b.id === updatedBid.id ? updatedBid : b)
+                };
+              });
+            }}
+          />
+        )}
+
+        {selectedVisit && (
+          <EditVisitModal
+            isOpen={isEditVisitModalOpen}
+            onClose={() => {
+              setIsEditVisitModalOpen(false)
+              setSelectedVisit(null)
+            }}
+            visit={selectedVisit}
+            onSave={(updatedVisit) => {
+              setProperty(prev => {
+                if (!prev) return prev;
+                return {
+                  ...prev,
+                  visits: prev.visits.map(v => v.id === updatedVisit.id ? updatedVisit : v)
+                };
+              });
+            }}
+          />
+        )}
+
+        <AddBidModal
+          isOpen={isAddBidModalOpen}
+          onClose={() => setIsAddBidModalOpen(false)}
+          propertyId={property.id}
+          onSave={(newBid) => {
+            setProperty(prev => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                bids: [newBid, ...prev.bids]
+              };
+            });
+          }}
+        />
+
+        <AddVisitModal
+          isOpen={isAddVisitModalOpen}
+          onClose={() => setIsAddVisitModalOpen(false)}
+          propertyId={property.id}
+          onSave={(newVisit) => {
+            setProperty(prev => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                visits: [newVisit, ...prev.visits]
+              };
+            });
+          }}
         />
       </main>
     </div>
