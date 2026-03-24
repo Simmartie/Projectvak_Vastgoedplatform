@@ -223,6 +223,21 @@ export const getPropertiesBySeller = async (sellerId: string): Promise<Property[
   })
 }
 
+export const getBuyers = async (): Promise<{ id: string, name: string }[]> => {
+  const supabase = createClient()
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, name')
+    .eq('role', 'koper')
+
+  if (error) {
+    console.error('Error fetching buyers:', error)
+    return []
+  }
+
+  return data || []
+}
+
 export async function updateProperty(updatedProperty: Partial<Property> & { id: string }): Promise<void> {
   const supabase = createClient()
 
@@ -295,6 +310,41 @@ export async function updateVisit(visitId: string, updates: Partial<Visit>): Pro
   }
 }
 
+export async function createVisit(propertyId: string, buyerId: string, data: Partial<Visit>): Promise<Visit> {
+  const supabase = createClient()
+  const { data: newVisit, error } = await supabase
+    .from('visits')
+    .insert({
+      property_id: propertyId,
+      buyer_id: buyerId,
+      date: data.date,
+      feedback: data.feedback,
+      rating: data.rating
+    })
+    .select(`*, users:buyer_id ( mock_id, name )`)
+    .single()
+
+  if (error) {
+    console.error('Error creating visit:', error)
+    throw new Error(error.message)
+  }
+
+  return mapDatabaseVisit(newVisit)
+}
+
+export async function deleteVisit(visitId: string): Promise<void> {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('visits')
+    .delete()
+    .eq('id', visitId)
+
+  if (error) {
+    console.error('Error deleting visit:', error)
+    throw new Error(error.message)
+  }
+}
+
 export async function updateBid(bidId: string, updates: Partial<Bid>): Promise<void> {
   const supabase = createClient()
 
@@ -313,6 +363,41 @@ export async function updateBid(bidId: string, updates: Partial<Bid>): Promise<v
 
   if (error) {
     console.error('Error updating bid:', error)
+    throw new Error(error.message)
+  }
+}
+
+export async function createBid(propertyId: string, buyerId: string, data: Partial<Bid>): Promise<Bid> {
+  const supabase = createClient()
+  const { data: newBid, error } = await supabase
+    .from('bids')
+    .insert({
+      property_id: propertyId,
+      buyer_id: buyerId,
+      amount: data.amount,
+      status: data.status || 'pending',
+      comments: data.comments
+    })
+    .select(`*, users:buyer_id ( mock_id, name )`)
+    .single()
+
+  if (error) {
+    console.error('Error creating bid:', error)
+    throw new Error(error.message)
+  }
+
+  return mapDatabaseBid(newBid)
+}
+
+export async function deleteBid(bidId: string): Promise<void> {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('bids')
+    .delete()
+    .eq('id', bidId)
+
+  if (error) {
+    console.error('Error deleting bid:', error)
     throw new Error(error.message)
   }
 }
