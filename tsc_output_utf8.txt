@@ -1,1 +1,0 @@
-﻿test_agenda_props.ts(9,21): error TS2488: Type 'Promise<Appointment[]>' must have a '[Symbol.iterator]()' method that returns an iterator.

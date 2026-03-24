@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Property, updateProperty } from '@/lib/properties'
+import { uploadPropertyImage } from '@/lib/supabase-storage'
 import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
@@ -21,6 +22,7 @@ interface EditPropertyModalProps {
 export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPropertyModalProps) {
     const [formData, setFormData] = useState<Property>(property)
     const [isGenerating, setIsGenerating] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [showAdvanced, setShowAdvanced] = useState(false)
 
@@ -103,15 +105,19 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
 
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                const base64String = reader.result as string
-                setFormData(prev => ({ ...prev, images: [...prev.images, base64String] }))
+            try {
+                setIsUploading(true)
+                const imageUrl = await uploadPropertyImage(file)
+                setFormData(prev => ({ ...prev, images: [...prev.images, imageUrl] }))
+            } catch (error) {
+                console.error('Error uploading image:', error)
+                alert('Er is een fout opgetreden bij het uploaden van de foto.')
+            } finally {
+                setIsUploading(false)
             }
-            reader.readAsDataURL(file)
         }
         if (fileInputRef.current) {
             fileInputRef.current.value = ''
@@ -327,8 +333,12 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                                         ref={fileInputRef}
                                         onChange={handleFileUpload}
                                     />
-                                    <Button type="button" variant="outline" size="sm" onClick={handleAddImageClick}>
-                                        <Plus className="h-4 w-4 mr-1" /> Voeg foto toe
+                                    <Button type="button" variant="outline" size="sm" onClick={handleAddImageClick} disabled={isUploading}>
+                                        {isUploading ? (
+                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploaden...</>
+                                        ) : (
+                                            <><Plus className="h-4 w-4 mr-1" /> Voeg foto toe</>
+                                        )}
                                     </Button>
                                 </div>
                                 <div className="space-y-3">
@@ -345,7 +355,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
 
                                             <div className="flex-1 w-full relative">
                                                 <Input
-                                                    value={imgUrl.startsWith('data:image') ? 'Geüploade afbeelding (Lokaal bestand)' : imgUrl}
+                                                    value={imgUrl.startsWith('data:image') ? 'Geüploade afbeelding (Base64)' : imgUrl}
                                                     onChange={(e) => {
                                                         if (!imgUrl.startsWith('data:image')) {
                                                             handleImageChange(index, e.target.value)
