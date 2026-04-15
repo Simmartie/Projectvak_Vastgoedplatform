@@ -1,6 +1,6 @@
 # Redundant Code Analysis
 
-Following the successful implementation of the simplified ElevenLabs architecture, several files and dependencies in the repository have become entirely obsolete. 
+Following the successful implementation of the simplified ElevenLabs architecture, several files and dependencies in the repository have become entirely obsolete.    
 
 Below is a detailed breakdown of which code is redundant, why it is no longer needed, and what can be safely deleted to keep the project clean.
 
