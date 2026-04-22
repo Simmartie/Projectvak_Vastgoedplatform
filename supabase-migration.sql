@@ -200,7 +200,7 @@ INSERT INTO users (mock_id, name, email, role) VALUES
 ('v5', 'Emma Bakker', 'v5@email.nl', 'verkoper'),
 ('v6', 'Luuk de Jong', 'v6@email.nl', 'verkoper'),
 ('v7', 'Sophie Mulder', 'v7@email.nl', 'verkoper'),
-('v8', 'Daan Kerstens', 'v8@email.nl', 'verkoper'),
+('v8', 'Daan Kerstens', 'daan@email.nl', 'verkoper'),
 ('v9', 'Milou van Dijk', 'v9@email.nl', 'verkoper'),
 ('v10', 'Sem Jansen', 'v10@email.nl', 'verkoper'),
 ('v11', 'Julia de Rijk', 'v11@email.nl', 'verkoper'),

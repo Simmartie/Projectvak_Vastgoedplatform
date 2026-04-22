@@ -80,7 +80,7 @@ export default function LoginPage() {
               </div>
               <div className="p-3 rounded-md bg-secondary">
                 <p className="font-medium">Verkoper</p>
-                <p className="text-muted-foreground">maria@email.nl</p>
+                <p className="text-muted-foreground">daan@email.nl</p>
               </div>
               <div className="p-3 rounded-md bg-secondary">
                 <p className="font-medium">Koper</p>

@@ -26,7 +26,7 @@ export const MOCK_USERS: User[] = [
   { id: 'v5', name: 'Emma Bakker', email: 'v5@email.nl', role: 'verkoper', propertyId: 'prop-5' },
   { id: 'v6', name: 'Luuk de Jong', email: 'v6@email.nl', role: 'verkoper', propertyId: 'prop-6' },
   { id: 'v7', name: 'Sophie Mulder', email: 'v7@email.nl', role: 'verkoper', propertyId: 'prop-7' },
-  { id: 'v8', name: 'Daan Kerstens', email: 'v8@email.nl', role: 'verkoper', propertyId: 'prop-8' },
+  { id: 'v8', name: 'Daan Kerstens', email: 'daan@email.nl', role: 'verkoper', propertyId: 'prop-8' },
   { id: 'v9', name: 'Milou van Dijk', email: 'v9@email.nl', role: 'verkoper', propertyId: 'prop-9' },
   { id: 'v10', name: 'Sem Jansen', email: 'v10@email.nl', role: 'verkoper', propertyId: 'prop-10' },
   { id: 'v11', name: 'Julia de Rijk', email: 'v11@email.nl', role: 'verkoper', propertyId: 'prop-11' },
