@@ -93,7 +93,7 @@ export default function KoperFavorieten() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {properties.map((property) => (
-              <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden group">
+              <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden group cursor-pointer" onClick={() => router.push(`/koper/property/${property.id}`)}>
                 <div className="relative aspect-video bg-muted overflow-hidden">
                   <img
                     src={property.images[0] || "/placeholder.svg"}
@@ -145,7 +145,7 @@ export default function KoperFavorieten() {
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                     <Link href={`/koper/property/${property.id}`} className="flex-1">
                       <Button variant="default" className="w-full">
                         Bekijk Details

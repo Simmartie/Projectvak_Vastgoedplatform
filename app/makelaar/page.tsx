@@ -275,7 +275,7 @@ export default function MakelaarDashboard() {
 
           <TabsContent value="all" className="space-y-4">
             {filteredProperties.map((property) => (
-              <Card key={property.id} className="hover:shadow-lg transition-shadow">
+              <Card key={property.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/makelaar/property/${property.id}`)}>
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="lg:w-48 h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
@@ -293,12 +293,14 @@ export default function MakelaarDashboard() {
                             {property.address}
                             {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
                               property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
-                              <Link href={`/makelaar/property/${property.id}#suggesties`}>
-                                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
-                                  <AlertCircle className="h-3 w-3 mr-1" />
-                                  Suggestie beoordelen
-                                </Badge>
-                              </Link>
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Link href={`/makelaar/property/${property.id}#suggesties`}>
+                                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    Suggestie beoordelen
+                                  </Badge>
+                                </Link>
+                              </div>
                             )}
                           </h3>
                           <div className="flex items-center text-sm text-muted-foreground">
@@ -344,7 +346,7 @@ export default function MakelaarDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/makelaar/property/${property.id}`} className="flex-1">
                           <Button variant="default" className="w-full">
                             Bekijk Details
@@ -376,7 +378,7 @@ export default function MakelaarDashboard() {
 
           <TabsContent value="te-koop" className="space-y-4">
             {filteredProperties.filter(p => p.status === 'te-koop').map((property) => (
-              <Card key={property.id} className="hover:shadow-lg transition-shadow">
+              <Card key={property.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/makelaar/property/${property.id}`)}>
                 <CardContent className="p-6">
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="lg:w-48 h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
@@ -394,12 +396,14 @@ export default function MakelaarDashboard() {
                             {property.address}
                             {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
                               property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
-                              <Link href={`/makelaar/property/${property.id}#suggesties`}>
-                                <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
-                                  <AlertCircle className="h-3 w-3 mr-1" />
-                                  Suggestie beoordelen
-                                </Badge>
-                              </Link>
+                              <div onClick={(e) => e.stopPropagation()}>
+                                <Link href={`/makelaar/property/${property.id}#suggesties`}>
+                                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
+                                    <AlertCircle className="h-3 w-3 mr-1" />
+                                    Suggestie beoordelen
+                                  </Badge>
+                                </Link>
+                              </div>
                             )}
                           </h3>
                           <div className="flex items-center text-sm text-muted-foreground">
@@ -442,7 +446,7 @@ export default function MakelaarDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/makelaar/property/${property.id}`} className="flex-1">
                           <Button variant="default" className="w-full">
                             Bekijk Details
@@ -477,7 +481,7 @@ export default function MakelaarDashboard() {
               </Card>
             ) : (
               filteredProperties.filter(p => p.status === 'onder-bod').map((property) => (
-                <Card key={property.id} className="hover:shadow-lg transition-shadow">
+                <Card key={property.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/makelaar/property/${property.id}`)}>
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row gap-6">
                       <div className="lg:w-48 h-32 bg-muted rounded-lg overflow-hidden flex-shrink-0">
@@ -495,12 +499,14 @@ export default function MakelaarDashboard() {
                               {property.address}
                               {(property.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) ||
                                 property.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)) && (
-                                <Link href={`/makelaar/property/${property.id}#suggesties`}>
-                                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
-                                    <AlertCircle className="h-3 w-3 mr-1" />
-                                    Suggestie beoordelen
-                                  </Badge>
-                                </Link>
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <Link href={`/makelaar/property/${property.id}#suggesties`}>
+                                    <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white border-0 flex items-center shrink-0">
+                                      <AlertCircle className="h-3 w-3 mr-1" />
+                                      Suggestie beoordelen
+                                    </Badge>
+                                  </Link>
+                                </div>
                               )}
                             </h3>
                             <div className="flex items-center text-sm text-muted-foreground">
@@ -543,7 +549,7 @@ export default function MakelaarDashboard() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2 pt-2">
+                        <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                           <Link href={`/makelaar/property/${property.id}`} className="flex-1">
                             <Button variant="default" className="w-full">
                               Bekijk Details

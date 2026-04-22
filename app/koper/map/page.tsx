@@ -121,7 +121,7 @@ export default function KoperMapView() {
             </div>
 
             {sortedProperties.map((property) => (
-              <Card key={property.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card key={property.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push(`/koper/property/${property.id}`)}>
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
@@ -160,11 +160,13 @@ export default function KoperMapView() {
                         </div>
                       </div>
 
-                      <Link href={`/koper/property/${property.id}`}>
-                        <Button size="sm" variant="outline" className="w-full">
-                          Bekijk Details
-                        </Button>
-                      </Link>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <Link href={`/koper/property/${property.id}`}>
+                          <Button size="sm" variant="outline" className="w-full">
+                            Bekijk Details
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
