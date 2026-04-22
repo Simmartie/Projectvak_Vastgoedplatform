@@ -329,7 +329,7 @@ export default function KoperDashboard() {
                   const distance = getDistanceToProperty(property)
                   
                   return (
-                    <Card key={property.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                    <Card key={property.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => router.push(`/koper/property/${property.id}`)}>
                       <CardContent className="p-4">
                         <div className="flex gap-3">
                           <img
@@ -353,11 +353,13 @@ export default function KoperDashboard() {
                             </div>
                           </div>
                         </div>
-                        <Link href={`/koper/property/${property.id}`}>
-                          <Button size="sm" className="w-full mt-3">
-                            Bekijk Details
-                          </Button>
-                        </Link>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <Link href={`/koper/property/${property.id}`}>
+                            <Button size="sm" className="w-full mt-3">
+                              Bekijk Details
+                            </Button>
+                          </Link>
+                        </div>
                       </CardContent>
                     </Card>
                   )
@@ -378,7 +380,7 @@ export default function KoperDashboard() {
                 const distance = getDistanceToProperty(property)
                 
                 return (
-                  <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden group">
+                  <Card key={property.id} className="hover:shadow-lg transition-shadow overflow-hidden group cursor-pointer" onClick={() => router.push(`/koper/property/${property.id}`)}>
                     <div className="relative aspect-video bg-muted overflow-hidden">
                       <img
                         src={property.images[0] || "/placeholder.svg"}
@@ -450,7 +452,7 @@ export default function KoperDashboard() {
                         )}
                       </div>
 
-                      <div className="flex gap-2 pt-2">
+                      <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
                         <Link href={`/koper/property/${property.id}`} className="flex-1">
                           <Button variant="default" className="w-full">
                             Bekijk Details
