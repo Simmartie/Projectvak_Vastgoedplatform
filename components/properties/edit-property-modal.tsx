@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Property, updateProperty } from '@/lib/properties'
 import { uploadPropertyImage } from '@/lib/supabase-storage'
-import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2, ChevronDown, ChevronUp, X, GripVertical } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
 interface EditPropertyModalProps {
@@ -19,12 +19,60 @@ interface EditPropertyModalProps {
     onSave: (updated: Property) => void
 }
 
+function SortInput({ index, total, onChange }: { index: number, total: number, onChange: (newPositionString: string) => void }) {
+    const [val, setVal] = useState((index + 1).toString())
+
+    useEffect(() => {
+        setVal((index + 1).toString())
+    }, [index])
+
+    const submitChange = () => {
+        const parsed = parseInt(val);
+        if (isNaN(parsed)) {
+            setVal((index + 1).toString());
+            return;
+        }
+        
+        let clamped = parsed;
+        if (clamped < 1) clamped = 1;
+        if (clamped > total) clamped = total;
+
+        if (clamped === index + 1) {
+            setVal(clamped.toString());
+        } else {
+            onChange(clamped.toString());
+        }
+    }
+
+    return (
+        <Input 
+            type="number" 
+            min={1} 
+            max={total}
+            value={val}
+            onChange={(e) => setVal(e.target.value)}
+            onBlur={submitChange}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitChange();
+                }
+            }}
+            className="w-16 h-8 px-1 py-1 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            title="Positie (typ een nummer en druk op Enter of klik ernaast)"
+        />
+    )
+}
+
 export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPropertyModalProps) {
     const [formData, setFormData] = useState<Property>(property)
     const [isGenerating, setIsGenerating] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [showAdvanced, setShowAdvanced] = useState(false)
+    const [expandedImages, setExpandedImages] = useState<string[]>([])
+    const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null)
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
 
     useEffect(() => {
         if (isOpen) {
@@ -140,6 +188,56 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
         const newImages = [...formData.images]
         const targetIndex = direction === 'up' ? index - 1 : index + 1
             ;[newImages[index], newImages[targetIndex]] = [newImages[targetIndex], newImages[index]]
+        setFormData({ ...formData, images: newImages })
+    }
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedImageIndex(index)
+        e.dataTransfer.effectAllowed = 'move'
+        e.dataTransfer.setData('text/plain', index.toString())
+    }
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        if (dragOverIndex !== index) setDragOverIndex(index)
+    }
+
+    const handleDragEnter = (e: React.DragEvent, index: number) => {
+        e.preventDefault()
+        if (dragOverIndex !== index) setDragOverIndex(index)
+    }
+
+    const handleDrop = (e: React.DragEvent, index: number) => {
+        e.preventDefault()
+        setDragOverIndex(null)
+        
+        const draggedIdxStr = e.dataTransfer.getData('text/plain')
+        const draggedIdx = draggedIdxStr ? parseInt(draggedIdxStr) : draggedImageIndex
+        
+        if (draggedIdx === null || isNaN(draggedIdx) || draggedIdx === index) {
+            setDraggedImageIndex(null)
+            return
+        }
+
+        const newImages = [...formData.images]
+        const [draggedImage] = newImages.splice(draggedIdx, 1)
+        newImages.splice(index, 0, draggedImage)
+        
+        setFormData({ ...formData, images: newImages })
+        setDraggedImageIndex(null)
+    }
+
+    const handlePositionChange = (currentIndex: number, newPositionString: string) => {
+        const newPosition = parseInt(newPositionString) - 1
+        if (isNaN(newPosition) || newPosition < 0 || newPosition >= formData.images.length || newPosition === currentIndex) {
+            return
+        }
+
+        const newImages = [...formData.images]
+        const [movedImage] = newImages.splice(currentIndex, 1)
+        newImages.splice(newPosition, 0, movedImage)
+        
         setFormData({ ...formData, images: newImages })
     }
 
@@ -343,41 +441,76 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                                 </div>
                                 <div className="space-y-3">
                                     {formData.images.map((imgUrl, index) => (
-                                        <div key={index} className="flex flex-col sm:flex-row gap-2 items-start sm:items-center bg-muted/50 p-2 rounded-md border">
-                                            <div className="flex gap-1 shrink-0">
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => moveImage(index, 'up')} disabled={index === 0}>
-                                                    <MoveUp className="h-4 w-4" />
+                                        <div 
+                                            key={imgUrl || `img-${index}`} 
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, index)}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDragEnter={(e) => handleDragEnter(e, index)}
+                                            onDrop={(e) => handleDrop(e, index)}
+                                            onDragEnd={() => {
+                                                setDraggedImageIndex(null)
+                                                setDragOverIndex(null)
+                                            }}
+                                            className={`flex flex-col gap-2 bg-muted/50 p-2 rounded-md border transition-all duration-200 cursor-grab active:cursor-grabbing 
+                                            ${draggedImageIndex === index ? 'opacity-50 ring-2 ring-primary scale-[0.98]' : ''}
+                                            ${dragOverIndex === index && draggedImageIndex !== index ? 'border-primary border-dashed border-2 bg-primary/5' : ''}`}
+                                        >
+                                            <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                <div className="flex gap-1 shrink-0">
+                                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => moveImage(index, 'up')} disabled={index === 0}>
+                                                        <MoveUp className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => moveImage(index, 'down')} disabled={index === formData.images.length - 1}>
+                                                        <MoveDown className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                                    <SortInput 
+                                                        index={index} 
+                                                        total={formData.images.length} 
+                                                        onChange={(val) => handlePositionChange(index, val)} 
+                                                    />
+                                                </div>
+
+                                                <div className="flex-1 w-full relative">
+                                                    <Input
+                                                        value={imgUrl.startsWith('data:image') ? 'Geüploade afbeelding (Base64)' : imgUrl}
+                                                        onChange={(e) => {
+                                                            if (!imgUrl.startsWith('data:image')) {
+                                                                handleImageChange(index, e.target.value)
+                                                            }
+                                                        }}
+                                                        readOnly={imgUrl.startsWith('data:image')}
+                                                        placeholder="Afbeelding URL of upload een bestand"
+                                                        className={`w-full ${imgUrl.startsWith('data:image') ? 'bg-muted text-muted-foreground' : ''}`}
+                                                    />
+                                                </div>
+
+                                                <div className="shrink-0">
+                                                    <img
+                                                        src={imgUrl || '/placeholder.svg'}
+                                                        alt={`Preview ${index}`}
+                                                        className={`w-12 h-12 rounded object-cover border bg-background cursor-pointer hover:opacity-80 transition-all ${expandedImages.includes(imgUrl) ? 'ring-2 ring-primary' : ''}`}
+                                                        onClick={() => setExpandedImages(prev => prev.includes(imgUrl) ? prev.filter(u => u !== imgUrl) : [...prev, imgUrl])}
+                                                        title="Klik om te vergroten"
+                                                    />
+                                                </div>
+
+                                                <Button type="button" variant="destructive" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleRemoveImage(index)}>
+                                                    <Trash2 className="h-4 w-4" />
                                                 </Button>
-                                                <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => moveImage(index, 'down')} disabled={index === formData.images.length - 1}>
-                                                    <MoveDown className="h-4 w-4" />
-                                                </Button>
                                             </div>
 
-                                            <div className="flex-1 w-full relative">
-                                                <Input
-                                                    value={imgUrl.startsWith('data:image') ? 'Geüploade afbeelding (Base64)' : imgUrl}
-                                                    onChange={(e) => {
-                                                        if (!imgUrl.startsWith('data:image')) {
-                                                            handleImageChange(index, e.target.value)
-                                                        }
-                                                    }}
-                                                    readOnly={imgUrl.startsWith('data:image')}
-                                                    placeholder="Afbeelding URL of upload een bestand"
-                                                    className={`w-full ${imgUrl.startsWith('data:image') ? 'bg-muted text-muted-foreground' : ''}`}
-                                                />
-                                            </div>
-
-                                            <div className="shrink-0">
-                                                <img
-                                                    src={imgUrl || '/placeholder.svg'}
-                                                    alt={`Preview ${index}`}
-                                                    className="w-12 h-12 rounded object-cover border bg-background"
-                                                />
-                                            </div>
-
-                                            <Button type="button" variant="destructive" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleRemoveImage(index)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                            {expandedImages.includes(imgUrl) && (
+                                                <div className="w-full mt-2 animate-in slide-in-from-top-2 fade-in duration-200 flex justify-center bg-background border rounded-md p-2">
+                                                    <img 
+                                                        src={imgUrl} 
+                                                        alt={`Large preview ${index}`} 
+                                                        className="max-w-full max-h-[300px] object-contain rounded"
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                     {formData.images.length === 0 && (

@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft, Heart, Check, X } from 'lucide-react'
+import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, ArrowLeft, Heart, Check, X } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
@@ -543,89 +543,6 @@ export default function PropertyDetailPage() {
                     );
                   })
                 )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Omgeving</CardTitle>
-                <CardDescription>Informatie over de buurt</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <GraduationCap className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Scholen</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.schools || []).map((school: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{school.name}</p>
-                          <p className="text-xs text-muted-foreground">{school.type}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">{school.distance}m</p>
-                          {school.rating && (
-                            <p className="text-xs text-card-foreground">★ {school.rating}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Dumbbell className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Sportclubs</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.sports || []).map((sport: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{sport.name}</p>
-                          <p className="text-xs text-muted-foreground">{sport.type}</p>
-                        </div>
-                        <p className="text-sm font-medium">{sport.distance}m</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Bus className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Openbaar Vervoer</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.transport || []).map((transport: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{transport.type.toUpperCase()} {transport.line}</p>
-                          <p className="text-xs text-muted-foreground">{transport.stop}</p>
-                        </div>
-                        <p className="text-sm font-medium">{transport.distance}m</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Evenementen</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.events || []).map((event: any, index: number) => (
-                      <div key={index} className="p-3 bg-muted rounded-lg">
-                        <p className="font-medium text-sm">{event.name}</p>
-                        <p className="text-xs text-muted-foreground">{event.frequency}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
