@@ -69,7 +69,7 @@ export function AddBidModal({ isOpen, onClose, propertyId, onSave }: AddBidModal
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Bod Toevoegen</DialogTitle>
                     <DialogDescription>

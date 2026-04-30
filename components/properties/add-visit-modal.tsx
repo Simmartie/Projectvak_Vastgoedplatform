@@ -72,7 +72,7 @@ export function AddVisitModal({ isOpen, onClose, propertyId, onSave }: AddVisitM
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>Bezichtiging Toevoegen</DialogTitle>
                     <DialogDescription>

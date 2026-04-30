@@ -242,9 +242,9 @@ export default function PropertyDetailPage() {
           </Link>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
+        <div className="flex flex-col lg:grid gap-6 lg:grid-cols-3">
+          <div className="contents lg:block lg:col-span-2 lg:space-y-6">
+            <Card className="order-1 lg:order-none">
               <CardContent className="p-0">
                 <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
                   <PropertyImageCarousel
@@ -321,7 +321,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-4 lg:order-none hidden md:block">
               <CardHeader>
                 <CardTitle>Kenmerken</CardTitle>
               </CardHeader>
@@ -360,7 +360,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card id="suggesties">
+            <Card id="suggesties" className="order-5 lg:order-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle>Bezichtigingen ({visibleVisits.length})</CardTitle>
@@ -451,7 +451,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card id="biedingen-suggesties">
+            <Card id="biedingen-suggesties" className="order-6 lg:order-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle>Biedingen ({property.bids.length})</CardTitle>
@@ -552,7 +552,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card id="chat" data-chat-card>
+            <Card id="chat" data-chat-card className="order-10 lg:order-none">
               <CardHeader>
                 <CardTitle>Vragen over dit dossier?</CardTitle>
                 <CardDescription>Stel je vragen direct aan onze AI assistent</CardDescription>
@@ -563,8 +563,8 @@ export default function PropertyDetailPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card>
+          <div className="contents lg:block lg:space-y-6">
+            <Card className="order-8 lg:order-none hidden md:block">
               <CardHeader>
                 <CardTitle>Statistieken</CardTitle>
               </CardHeader>
@@ -612,7 +612,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-3 lg:order-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <History className="h-5 w-5" />
@@ -654,7 +654,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-9 lg:order-none">
               <CardHeader>
                 <CardTitle>Verkoper (Eigenaar)</CardTitle>
                 <CardDescription>Contactgegevens van de eigenaar</CardDescription>
@@ -676,7 +676,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-2 lg:order-none">
               <CardHeader>
                 <CardTitle>Acties</CardTitle>
               </CardHeader>

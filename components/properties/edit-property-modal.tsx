@@ -286,7 +286,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                     <div className="flex-1 overflow-y-auto px-6 py-4">
                         <div className="space-y-6">
                             {/* Standard Fields */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="address">Adres</Label>
                                     <Input id="address" name="address" value={formData.address} onChange={handleTextChange} required />
@@ -308,7 +308,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                             <hr />
 
                             {/* Dropdowns */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label>Type Pand</Label>
                                     <Select value={formData.type} onValueChange={(val) => handleSelectChange('type', val)}>
@@ -369,7 +369,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                             <hr />
 
                             {/* Numbers */}
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="rooms">Aantal Kamers</Label>
                                     <Input id="rooms" name="rooms" type="number" value={formData.rooms} onChange={handleTextChange} required />
@@ -547,7 +547,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                                         {/* Kadaster & General Info */}
                                         <div className="space-y-3">
                                             <h4 className="font-semibold text-sm">Kadaster & Info</h4>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <Label htmlFor="capakey">Kadastrale sleutel (CaPaKey)</Label>
                                                     <Input id="capakey" name="capakey" value={formData.capakey || ''} onChange={handleTextChange} placeholder="bijv. 12025C0345/00A000" />
@@ -588,7 +588,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                                         {/* Overstromingskans */}
                                         <div className="space-y-3">
                                             <h4 className="font-semibold text-sm">Overstromingskans</h4>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <Label>P-Score (Perceel)</Label>
                                                     <Select value={formData.pScore || ''} onValueChange={(val) => handleAdvancedSelectChange('pScore', val)}>
@@ -621,7 +621,7 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
                                         {/* Certificaten & Attesten */}
                                         <div className="space-y-3">
                                             <h4 className="font-semibold text-sm">Certificaten & Attesten</h4>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <div className="space-y-2">
                                                     <Label>Bodemattest Status</Label>
                                                     <Select value={formData.bodemattest || 'Blanco'} onValueChange={(val) => handleAdvancedSelectChange('bodemattest', val)}>
