@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getCurrentUser, MOCK_USERS } from '@/lib/auth'
 import { getPropertyById, Property, updateVisit, updateBid } from '@/lib/properties'
+import { getPriceHistories, PriceHistory } from '@/lib/price-histories'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, ArrowLeft, Heart, Check, X } from 'lucide-react'
+import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, ArrowLeft, Heart, Check, X, History } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
@@ -25,6 +26,7 @@ export default function PropertyDetailPage() {
   const router = useRouter()
   const params = useParams()
   const [property, setProperty] = useState<Property | null>(null)
+  const [priceHistories, setPriceHistories] = useState<PriceHistory[]>([])
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
@@ -46,9 +48,13 @@ export default function PropertyDetailPage() {
     }
 
     const loadProperty = async () => {
-      const prop = await getPropertyById(params.id as string)
+      const propId = params.id as string
+      const prop = await getPropertyById(propId)
       if (prop) {
         setProperty(prop)
+        // Load price histories
+        const histories = await getPriceHistories(prop.id)
+        setPriceHistories(histories)
       }
     }
     loadProperty()
@@ -262,7 +268,7 @@ export default function PropertyDetailPage() {
                       </p>
                       {property.previousPrice && property.previousPrice !== property.price && (
                         <p className={`text-sm mt-1 font-medium ${property.price > property.previousPrice ? 'text-destructive' : 'text-green-600'}`}>
-                          {property.price > property.previousPrice ? '+' : ''}€{(property.price - property.previousPrice).toLocaleString('nl-NL')} tov vorige prijs
+                          {property.price > property.previousPrice ? '+' : ''}{((property.price - property.previousPrice) / property.previousPrice * 100).toFixed(1).replace('.', ',')}% tov vorige prijs
                         </p>
                       )}
                     </div>
@@ -608,6 +614,48 @@ export default function PropertyDetailPage() {
 
             <Card>
               <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Prijsgeschiedenis
+                </CardTitle>
+                <CardDescription>
+                  Overzicht van wijzigingen in de vraagprijs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {priceHistories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4 border rounded-lg bg-muted/20">
+                    Geen eerdere prijswijzigingen geregistreerd.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {priceHistories.map((history) => (
+                      <div key={history.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/20 text-sm">
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {new Date(history.changed_at).toLocaleDateString('nl-NL')}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {new Date(history.changed_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-muted-foreground line-through decoration-muted-foreground/50 text-xs">
+                            €{history.old_price.toLocaleString('nl-NL')}
+                          </p>
+                          <p className="font-bold text-primary">
+                            €{history.new_price.toLocaleString('nl-NL')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Verkoper (Eigenaar)</CardTitle>
                 <CardDescription>Contactgegevens van de eigenaar</CardDescription>
               </CardHeader>
@@ -663,7 +711,11 @@ export default function PropertyDetailPage() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           property={property}
-          onSave={setProperty}
+          onSave={(updatedProp) => {
+            setProperty(updatedProp)
+            // Reload price history to show new entry
+            getPriceHistories(updatedProp.id).then(setPriceHistories)
+          }}
         />
 
         {selectedBid && (

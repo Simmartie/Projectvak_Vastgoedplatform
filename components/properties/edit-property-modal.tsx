@@ -11,6 +11,7 @@ import { Property, updateProperty } from '@/lib/properties'
 import { uploadPropertyImage } from '@/lib/supabase-storage'
 import { Trash2, Plus, MoveUp, MoveDown, Sparkles, Loader2, ChevronDown, ChevronUp, X, GripVertical } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { addPriceHistory } from '@/lib/price-histories'
 
 interface EditPropertyModalProps {
     isOpen: boolean
@@ -249,6 +250,11 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
         // Track price changes
         if (finalData.price !== property.price) {
             finalData.previousPrice = property.price
+            try {
+                await addPriceHistory(property.id, property.price, finalData.price)
+            } catch (err) {
+                console.error("Failed to add price history", err)
+            }
         }
 
         try {
