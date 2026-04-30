@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { getCurrentUser, MOCK_USERS } from '@/lib/auth'
 import { getPropertyById, Property, updateVisit, updateBid } from '@/lib/properties'
+import { getPriceHistories, PriceHistory } from '@/lib/price-histories'
 import { Header } from '@/components/header'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, GraduationCap, Dumbbell, Bus, CalendarDays, ArrowLeft, Heart, Check, X } from 'lucide-react'
+import { Building2, MapPin, Ruler, Calendar, Zap, TrendingUp, Eye, Users, Star, MessageSquare, Euro, Home, ArrowLeft, Heart, Check, X, History } from 'lucide-react'
 import Link from 'next/link'
 import { ChatInterface } from '@/components/chat-interface'
 import { EditPropertyModal } from '@/components/properties/edit-property-modal'
@@ -25,6 +26,7 @@ export default function PropertyDetailPage() {
   const router = useRouter()
   const params = useParams()
   const [property, setProperty] = useState<Property | null>(null)
+  const [priceHistories, setPriceHistories] = useState<PriceHistory[]>([])
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
@@ -46,9 +48,13 @@ export default function PropertyDetailPage() {
     }
 
     const loadProperty = async () => {
-      const prop = await getPropertyById(params.id as string)
+      const propId = params.id as string
+      const prop = await getPropertyById(propId)
       if (prop) {
         setProperty(prop)
+        // Load price histories
+        const histories = await getPriceHistories(prop.id)
+        setPriceHistories(histories)
       }
     }
     loadProperty()
@@ -236,9 +242,9 @@ export default function PropertyDetailPage() {
           </Link>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-6">
-            <Card>
+        <div className="flex flex-col lg:grid gap-6 lg:grid-cols-3">
+          <div className="contents lg:block lg:col-span-2 lg:space-y-6">
+            <Card className="order-1 lg:order-none">
               <CardContent className="p-0">
                 <div className="aspect-video bg-muted rounded-t-lg overflow-hidden">
                   <PropertyImageCarousel
@@ -262,7 +268,7 @@ export default function PropertyDetailPage() {
                       </p>
                       {property.previousPrice && property.previousPrice !== property.price && (
                         <p className={`text-sm mt-1 font-medium ${property.price > property.previousPrice ? 'text-destructive' : 'text-green-600'}`}>
-                          {property.price > property.previousPrice ? '+' : ''}€{(property.price - property.previousPrice).toLocaleString('nl-NL')} tov vorige prijs
+                          {property.price > property.previousPrice ? '+' : ''}{((property.price - property.previousPrice) / property.previousPrice * 100).toFixed(1).replace('.', ',')}% tov vorige prijs
                         </p>
                       )}
                     </div>
@@ -315,7 +321,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-4 lg:order-none hidden md:block">
               <CardHeader>
                 <CardTitle>Kenmerken</CardTitle>
               </CardHeader>
@@ -354,7 +360,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card id="suggesties">
+            <Card id="suggesties" className="order-5 lg:order-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle>Bezichtigingen ({visibleVisits.length})</CardTitle>
@@ -445,7 +451,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card id="biedingen-suggesties">
+            <Card id="biedingen-suggesties" className="order-6 lg:order-none">
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <div>
                   <CardTitle>Biedingen ({property.bids.length})</CardTitle>
@@ -546,90 +552,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Omgeving</CardTitle>
-                <CardDescription>Informatie over de buurt</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <GraduationCap className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Scholen</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.schools || []).map((school: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{school.name}</p>
-                          <p className="text-xs text-muted-foreground">{school.type}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">{school.distance}m</p>
-                          {school.rating && (
-                            <p className="text-xs text-card-foreground">★ {school.rating}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Dumbbell className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Sportclubs</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.sports || []).map((sport: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{sport.name}</p>
-                          <p className="text-xs text-muted-foreground">{sport.type}</p>
-                        </div>
-                        <p className="text-sm font-medium">{sport.distance}m</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Bus className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Openbaar Vervoer</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.transport || []).map((transport: any, index: number) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                        <div>
-                          <p className="font-medium text-sm">{transport.type.toUpperCase()} {transport.line}</p>
-                          <p className="text-xs text-muted-foreground">{transport.stop}</p>
-                        </div>
-                        <p className="text-sm font-medium">{transport.distance}m</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <CalendarDays className="h-5 w-5 text-muted-foreground" />
-                    <h4 className="font-medium">Evenementen</h4>
-                  </div>
-                  <div className="space-y-2">
-                    {(property.neighborhood?.events || []).map((event: any, index: number) => (
-                      <div key={index} className="p-3 bg-muted rounded-lg">
-                        <p className="font-medium text-sm">{event.name}</p>
-                        <p className="text-xs text-muted-foreground">{event.frequency}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card id="chat" data-chat-card>
+            <Card id="chat" data-chat-card className="order-10 lg:order-none">
               <CardHeader>
                 <CardTitle>Vragen over dit dossier?</CardTitle>
                 <CardDescription>Stel je vragen direct aan onze AI assistent</CardDescription>
@@ -640,8 +563,8 @@ export default function PropertyDetailPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
-            <Card>
+          <div className="contents lg:block lg:space-y-6">
+            <Card className="order-8 lg:order-none hidden md:block">
               <CardHeader>
                 <CardTitle>Statistieken</CardTitle>
               </CardHeader>
@@ -689,7 +612,49 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-3 lg:order-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5" />
+                  Prijsgeschiedenis
+                </CardTitle>
+                <CardDescription>
+                  Overzicht van wijzigingen in de vraagprijs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {priceHistories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4 border rounded-lg bg-muted/20">
+                    Geen eerdere prijswijzigingen geregistreerd.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {priceHistories.map((history) => (
+                      <div key={history.id} className="flex items-center justify-between p-3 border rounded-lg bg-muted/20 text-sm">
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {new Date(history.changed_at).toLocaleDateString('nl-NL')}
+                          </p>
+                          <p className="text-muted-foreground text-xs">
+                            {new Date(history.changed_at).toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-muted-foreground line-through decoration-muted-foreground/50 text-xs">
+                            €{history.old_price.toLocaleString('nl-NL')}
+                          </p>
+                          <p className="font-bold text-primary">
+                            €{history.new_price.toLocaleString('nl-NL')}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="order-9 lg:order-none">
               <CardHeader>
                 <CardTitle>Verkoper (Eigenaar)</CardTitle>
                 <CardDescription>Contactgegevens van de eigenaar</CardDescription>
@@ -711,7 +676,7 @@ export default function PropertyDetailPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="order-2 lg:order-none">
               <CardHeader>
                 <CardTitle>Acties</CardTitle>
               </CardHeader>
@@ -746,7 +711,11 @@ export default function PropertyDetailPage() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           property={property}
-          onSave={setProperty}
+          onSave={(updatedProp) => {
+            setProperty(updatedProp)
+            // Reload price history to show new entry
+            getPriceHistories(updatedProp.id).then(setPriceHistories)
+          }}
         />
 
         {selectedBid && (

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart, AlertCircle } from 'lucide-react'
+import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart, AlertCircle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MakelaarDashboard() {
@@ -74,142 +74,42 @@ export default function MakelaarDashboard() {
     return 0
   })
 
-  const totalViews = filteredProperties.reduce((sum, p) => sum + p.views, 0)
-  const totalInterested = filteredProperties.reduce((sum, p) => sum + p.interested, 0)
-  const totalBids = filteredProperties.reduce((sum, p) => sum + p.bids.length, 0)
-  const activeProperties = filteredProperties.filter(p => p.status === 'te-koop').length
 
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       <main className="container mx-auto px-4 pt-8 pb-48 md:pb-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-0">
           <div>
             <h2 className="text-3xl font-bold mb-2">Dashboard Overzicht</h2>
             <p className="text-muted-foreground">
               Beheer alle panden en dossiers
             </p>
           </div>
-          {properties.some(p => 
-            p.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) || 
-            p.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
-          ) && (
-            <Link href="/makelaar/suggestions">
-              <Button className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-lg">
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Bekijk alle suggesties
-                <span className="ml-2 flex h-2 w-2 rounded-full bg-white animate-pulse" />
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4">
+            <Link href="/makelaar/todos">
+              <Button variant="outline" className="shadow-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-primary" />
+                To-do lijst
               </Button>
             </Link>
-          )}
+            {properties.some(p => 
+              p.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) || 
+              p.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
+            ) && (
+              <Link href="/makelaar/suggestions">
+                <Button className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-lg">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Bekijk alle suggesties
+                  <span className="ml-2 flex h-2 w-2 rounded-full bg-white animate-pulse" />
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
-        {/* Mobiele versie: 1 overkoepelend vak */}
-        <div className="md:hidden mb-8">
-          <Card>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                    <Building2 className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">Actieve Panden</div>
-                    <div className="text-lg font-bold">
-                      {activeProperties} <span className="text-xs font-normal text-muted-foreground">/{filteredProperties.length}</span>
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                    <Eye className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">Weergaven</div>
-                    <div className="text-lg font-bold">{totalViews}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                    <Heart className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">Favorieten</div>
-                    <div className="text-lg font-bold">{totalInterested}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg shrink-0">
-                    <TrendingUp className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <div className="text-xs text-muted-foreground font-medium">Biedingen</div>
-                    <div className="text-lg font-bold">{totalBids}</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Desktop versie: 4 losse vakken */}
-        <div className="hidden md:grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Actieve Panden</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{activeProperties}</div>
-              <p className="text-xs text-muted-foreground">
-                van {filteredProperties.length} totaal
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Totaal Weergaven</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalViews}</div>
-              <p className="text-xs text-muted-foreground">
-                online bekeken
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Geïnteresseerden</CardTitle>
-              <Heart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalInterested}</div>
-              <p className="text-xs text-muted-foreground">
-                keer als favoriet aangeduid
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Biedingen</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalBids}</div>
-              <p className="text-xs text-muted-foreground">
-                openstaand
-              </p>
-            </CardContent>
-          </Card>
-        </div>
 
         <Card className="mb-8">
           <CardContent className="pt-6">

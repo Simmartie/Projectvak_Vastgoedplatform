@@ -401,3 +401,63 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN
     CREATE POLICY "Allow public delete" ON appointment_participants FOR DELETE USING (true);
 EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- ==========================================
+-- 9. TODOS TABLE
+-- ==========================================
+CREATE TABLE IF NOT EXISTS todos (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  status TEXT DEFAULT 'todo',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to todos" ON todos FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON todos FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON todos FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public delete" ON todos FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- ==========================================
+-- 10. PRICE HISTORIES TABLE
+-- ==========================================
+CREATE TABLE IF NOT EXISTS price_histories (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
+  old_price INTEGER NOT NULL,
+  new_price INTEGER NOT NULL,
+  changed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE price_histories ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to price_histories" ON price_histories FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON price_histories FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON price_histories FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public delete" ON price_histories FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+

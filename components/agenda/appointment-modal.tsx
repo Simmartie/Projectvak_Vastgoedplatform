@@ -160,8 +160,8 @@ export function AppointmentModal({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px]">
-                <form onSubmit={handleSubmit}>
+            <DialogContent className="w-[95vw] max-h-[90vh] overflow-y-auto rounded-xl sm:max-w-[500px]">
+                <form onSubmit={handleSubmit} className="pb-24 sm:pb-0">
                     <DialogHeader>
                         <DialogTitle>{isEditing ? 'Afspraak bewerken' : 'Nieuwe afspraak'}</DialogTitle>
                         <DialogDescription>
