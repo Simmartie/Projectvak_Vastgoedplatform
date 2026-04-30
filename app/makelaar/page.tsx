@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart, AlertCircle } from 'lucide-react'
+import { Building2, Eye, Users, TrendingUp, MapPin, MessageSquare, Euro, Search, Calendar, Heart, AlertCircle, CheckCircle2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function MakelaarDashboard() {
@@ -91,18 +91,26 @@ export default function MakelaarDashboard() {
               Beheer alle panden en dossiers
             </p>
           </div>
-          {properties.some(p => 
-            p.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) || 
-            p.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
-          ) && (
-            <Link href="/makelaar/suggestions">
-              <Button className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-lg">
-                <AlertCircle className="h-4 w-4 mr-2" />
-                Bekijk alle suggesties
-                <span className="ml-2 flex h-2 w-2 rounded-full bg-white animate-pulse" />
+          <div className="flex items-center gap-4">
+            <Link href="/makelaar/todos">
+              <Button variant="outline" className="shadow-sm">
+                <CheckCircle2 className="h-4 w-4 mr-2 text-primary" />
+                To-do lijst
               </Button>
             </Link>
-          )}
+            {properties.some(p => 
+              p.visits?.some(v => v.feedback_suggestion || v.rating_suggestion) || 
+              p.bids?.some(b => b.amount_suggestion || b.status_suggestion || b.comment_suggestion)
+            ) && (
+              <Link href="/makelaar/suggestions">
+                <Button className="bg-amber-500 hover:bg-amber-600 text-white border-0 shadow-lg">
+                  <AlertCircle className="h-4 w-4 mr-2" />
+                  Bekijk alle suggesties
+                  <span className="ml-2 flex h-2 w-2 rounded-full bg-white animate-pulse" />
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Mobiele versie: 1 overkoepelend vak */}

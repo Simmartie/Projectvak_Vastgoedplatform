@@ -401,3 +401,33 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 DO $$ BEGIN
     CREATE POLICY "Allow public delete" ON appointment_participants FOR DELETE USING (true);
 EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+-- ==========================================
+-- 9. TODOS TABLE
+-- ==========================================
+CREATE TABLE IF NOT EXISTS todos (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  property_id UUID REFERENCES properties(id) ON DELETE CASCADE,
+  description TEXT NOT NULL,
+  status TEXT DEFAULT 'todo',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE todos ENABLE ROW LEVEL SECURITY;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public read access to todos" ON todos FOR SELECT USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public insert" ON todos FOR INSERT WITH CHECK (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public update" ON todos FOR UPDATE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Allow public delete" ON todos FOR DELETE USING (true);
+EXCEPTION WHEN duplicate_object THEN null; END $$;
