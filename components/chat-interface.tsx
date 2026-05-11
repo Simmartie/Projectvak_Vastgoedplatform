@@ -34,9 +34,6 @@ export function ChatInterface({ propertyId, role }: { propertyId: string, role: 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-      // #region agent log
-      fetch('http://127.0.0.1:7851/ingest/75cfb7c7-573a-4083-906b-2611c42d56d5', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': 'ef2530' }, body: JSON.stringify({ sessionId: 'ef2530', runId: 'post-fix', hypothesisId: 'scroll-behaviour', location: 'components/chat-interface.tsx:26', message: 'Auto-scroll applied on messages update', data: { scrollHeight: scrollRef.current.scrollHeight, clientHeight: scrollRef.current.clientHeight }, timestamp: Date.now() }) }).catch(() => { })
-      // #endregion
     }
   }, [messages])
 
