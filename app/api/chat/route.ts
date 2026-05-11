@@ -121,7 +121,7 @@ export async function POST(req: Request) {
     async start(controller) {
       try {
         const res = await fetch(
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent',
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
           {
             method: 'POST',
             headers: {
@@ -140,11 +140,12 @@ export async function POST(req: Request) {
         )
 
         if (!res.ok) {
-          console.error('Gemini API error status:', res.status)
+          const errorText = await res.text();
+          console.error('Gemini API error status:', res.status, 'Body:', errorText);
           controller.enqueue(
             encoder.encode(
               `0:${JSON.stringify(
-                'De AI-assistent kon je vraag nu niet beantwoorden. Probeer het later opnieuw.'
+                'De AI-assistent kon je vraag nu niet beantwoorden (API error). Probeer het later opnieuw.'
               )}\n`
             )
           )
@@ -152,22 +153,41 @@ export async function POST(req: Request) {
           return
         }
 
-        const json = (await res.json()) as any
+        let json;
+        try {
+          json = (await res.json()) as any;
+          console.log('Gemini API full response:', JSON.stringify(json, null, 2));
+        } catch (parseError) {
+          console.error('Error parsing Gemini JSON:', parseError);
+          controller.enqueue(encoder.encode(`0:${JSON.stringify('Fout bij het verwerken van het AI-antwoord.')}\n`));
+          controller.close();
+          return;
+        }
+
         const parts = json?.candidates?.[0]?.content?.parts ?? []
         const text = parts.map((p: any) => p.text ?? '').join('').trim()
 
+        if (!text && json?.candidates?.[0]?.finishReason) {
+           console.warn('Gemini returned no text. Finish reason:', json.candidates[0].finishReason);
+           if (json.candidates[0].finishReason === 'SAFETY') {
+             controller.enqueue(encoder.encode(`0:${JSON.stringify('Het antwoord werd geblokkeerd door veiligheidsfilters.')}\n`));
+             controller.close();
+             return;
+           }
+        }
+
         const answer =
           text ||
-          'De AI-assistent kon je vraag nu niet beantwoorden. Probeer het later opnieuw.'
+          'De AI-assistent kon je vraag nu niet beantwoorden (geen tekst ontvangen). Probeer het later opnieuw.'
 
         controller.enqueue(encoder.encode(`0:${JSON.stringify(answer)}\n`))
         controller.close()
-      } catch (error) {
-        console.error('Error calling Gemini API:', error)
+      } catch (error: any) {
+        console.error('General Error in chat route:', error)
         controller.enqueue(
           encoder.encode(
             `0:${JSON.stringify(
-              'Er is een fout opgetreden bij het verbinden met de AI-assistent. Probeer het later opnieuw.'
+              `Fout: ${error?.message || 'Onbekende fout in de chat-route.'}`
             )}\n`
           )
         )
