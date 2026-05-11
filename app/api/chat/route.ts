@@ -57,42 +57,17 @@ function buildPrompt(question: string, property: any, role: string): string {
     }
   }
 
-  if (property.neighborhood?.schools?.length) {
-    const scholen = property.neighborhood.schools
-      .map((s: any) => `${s.name} (${s.type}) op ${s.distance}m`)
-      .join('; ')
-    propertySummaryParts.push(`Scholen in de buurt: ${scholen}.`)
-  }
-
-  if (property.neighborhood?.transport?.length) {
-    const transport = property.neighborhood.transport
-      .map((t: any) => `${t.type} lijn ${t.line}, halte ${t.stop} op ${t.distance}m`)
-      .join('; ')
-    propertySummaryParts.push(`Openbaar vervoer: ${transport}.`)
-  }
-
-  if (property.neighborhood?.sports?.length) {
-    const sports = property.neighborhood.sports
-      .map((s: any) => `${s.name} (${s.type}) op ${s.distance}m`)
-      .join('; ')
-    propertySummaryParts.push(`Sportfaciliteiten: ${sports}.`)
-  }
-
-  if (property.neighborhood?.events?.length) {
-    const events = property.neighborhood.events
-      .map((e: any) => `${e.name} (${e.frequency})`)
-      .join('; ')
-    propertySummaryParts.push(`Evenementen in de buurt: ${events}.`)
-  }
+  // Neighborhood data is no longer mocked; we use Google Search Grounding for this.
 
   let systemInstruction = ''
 
   if (role === 'koper') {
     systemInstruction =
       'Je bent een behulpzame Nederlandstalige vastgoedassistent voor een potentiële koper. ' +
-      'Je mag ENKEL informatie geven over de volgende specifieke kenmerken: adres, stad, postcode, buurt (zoals scholen, sportfaciliteiten, openbaar vervoer, evenementen), prijs, type, kamers, slaapkamers, oppervlakte, perceeloppervlakte, bouwjaar, epc score, energielabel, mobiscore, status, beschrijving en kenmerken (features). ' +
-      'Als de gebruiker vraagt naar informatie die NIET in deze lijst staat (bijvoorbeeld bodemattest, bouwmisdrijf, schatting, attesten, etc.), OF als de informatie ontbreekt in de database/pandgegevens, antwoord dan EXACT en ALLEEN met dit woord: "CONTACT_AGENT" ' +
-      'Verzin geen informatie die niet in de pandgegevens staat. Wees beknopt. ' +
+      'Je mag ENKEL informatie geven over de volgende specifieke kenmerken: adres, stad, postcode, prijs, type, kamers, slaapkamers, oppervlakte, perceeloppervlakte, bouwjaar, epc score, energielabel, mobiscore, status, beschrijving en kenmerken (features). ' +
+      'Voor alle vragen over de buurt (zoals scholen, voetbalclubs, sportfaciliteiten, openbaar vervoer, evenementen, festivals, supermarkten, etc. dichtbij het pand), MOET je altijd je ingebouwde Google Search tool gebruiken om actuele informatie op te zoeken in de buurt van het adres van het pand. Vertrouw niet op verouderde gegevens. ' +
+      'Als de gebruiker vraagt naar pand-specifieke informatie die NIET in deze lijst staat (bijvoorbeeld bodemattest, bouwmisdrijf, schatting, attesten, etc.), OF als de informatie ontbreekt in de database/pandgegevens, antwoord dan EXACT en ALLEEN met dit woord: "CONTACT_AGENT" ' +
+      'Verzin geen pand-specifieke informatie die niet in de pandgegevens staat. Wees beknopt. ' +
       'BELANGRIJK: "EPC label", "epc", "energieprestatiecertificaat", "energieklasse", "energie label" en "energielabel" is het veld "energielabel" of "epc score".'
   } else {
     // role === 'makelaar'
@@ -100,6 +75,7 @@ function buildPrompt(question: string, property: any, role: string): string {
       'Je bent een Nederlandstalige vastgoedassistent voor de makelaar. ' +
       'Jij hebt volledige toegang tot ALLE pandgegevens (inclusief interne informatie zoals attesten, kadastraal inkomen, biedingen, bezichtigingen, etc.). ' +
       'Je mag alle vragen over het pand beantwoorden met de beschikbare gegevens. ' +
+      'Voor alle vragen over de buurt (zoals scholen, voetbalclubs, sportfaciliteiten, festivals, supermarkten etc. dichtbij het pand), MOET je de ingebouwde Google Search tool gebruiken om actuele gegevens rondom het adres op te zoeken. ' +
       'Als de gebruiker vraagt naar informatie die NIET aanwezig is in de verstrekte pandgegevens (oftewel ontbreekt in de database), antwoord dan EXACT met deze zin: "Deze informatie is niet bekend over dit dossier". ' +
       'Geef geen excuus of langdradig antwoord als de informatie ontbreekt, enkel deze exacte zin. ' +
       'Voorbeeld: bij "Wat is het EPC label?" of "Wat is het energielabel?" antwoord je met het label en verzin geen informatie die niet voorkomt in de pandgegevens.'
@@ -158,6 +134,7 @@ export async function POST(req: Request) {
                   parts: [{ text: promptText }],
                 },
               ],
+              tools: [{ googleSearch: {} }]
             }),
           }
         )
