@@ -138,8 +138,9 @@ export function EditPropertyModal({ isOpen, onClose, property, onSave }: EditPro
             if (data.text) {
                 setFormData(prev => ({ ...prev, description: data.text }))
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error generating description:', error)
+            alert(error.message || 'Er is een fout opgetreden bij het genereren van de beschrijving. De AI is mogelijk overbelast. Probeer het later opnieuw.')
         } finally {
             setIsGenerating(false)
         }
